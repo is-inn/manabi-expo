@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "まなびチーム",
+    "slug": "manabi-team",
+    "scheme": "manabiteam",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "com.manabiteam.app",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.manabiteam.app",
+      "permissions": [],
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#4f9cf9"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": false
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2d731e4d-ea9f-400c-80af-2a75905ba62d"
+      }
+    },
+    "owner": "kurihara93774893"
+  }
+}
