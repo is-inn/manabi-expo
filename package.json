@@ -26,5 +26,8 @@
     "@types/react": "~19.2.0",
     "typescript": "~6.0.3"
   },
+  "overrides": {
+    "react-native-worklets": "0.12.1"
+  },
   "private": true
 }
