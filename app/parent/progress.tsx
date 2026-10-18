@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native'
 import { useApp } from '../../src/hooks/AppContext'
-import { formatDuration, getTotalStudyTime, getStreak, getSubjectColor } from '../../src/utils/helpers'
+import { formatDuration, getTotalStudyTime, getStreak, getSubjectColor, toDateStr } from '../../src/utils/helpers'
 
 export default function ParentProgress() {
   const { state } = useApp()
@@ -24,7 +24,7 @@ export default function ParentProgress() {
           for (let i = 6; i >= 0; i--) {
             const d = new Date()
             d.setDate(d.getDate() - i)
-            const dateStr = d.toISOString().split('T')[0]
+            const dateStr = toDateStr(d)
             const dayTotal = sessions.filter(s => s.date === dateStr).reduce((a, s) => a + s.duration, 0)
             const dayLabel = ['日', '月', '火', '水', '木', '金', '土'][d.getDay()]
             last7.push({ label: dayLabel, total: dayTotal })

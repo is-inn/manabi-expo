@@ -16,7 +16,14 @@ export const formatDuration = (seconds: number): string => {
   return `${s}秒`
 }
 
-export const getTodayStr = (): string => new Date().toISOString().split('T')[0]
+/** 端末のタイムゾーンでの日付（YYYY-MM-DD）。toISOString はUTC基準で、日本の午前0〜9時に前日になってしまう */
+export const toDateStr = (d: Date): string => {
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${m}-${day}`
+}
+
+export const getTodayStr = (): string => toDateStr(new Date())
 
 export const getTotalStudyTime = (sessions: { duration: number }[]): number =>
   sessions.reduce((acc, s) => acc + s.duration, 0)
@@ -29,9 +36,11 @@ export const getStreak = (sessions: { date: string }[]): number => {
   for (const date of dates) {
     if (date === checkDate) {
       streak++
-      const d = new Date(checkDate)
+      // new Date('YYYY-MM-DD') はUTC扱いになるので、年月日を分けて端末の時間で作る
+      const [y, m, day] = checkDate.split('-').map(Number)
+      const d = new Date(y, m - 1, day)
       d.setDate(d.getDate() - 1)
-      checkDate = d.toISOString().split('T')[0]
+      checkDate = toDateStr(d)
     } else break
   }
   return streak
