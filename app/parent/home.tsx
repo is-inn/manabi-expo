@@ -27,6 +27,10 @@ export default function ParentHome() {
           </TouchableOpacity>
         </View>
 
+        {children.length === 0 && (
+          <Text style={styles.empty}>こどもが登録されていません。{'\n'}「設定」タブから追加してください。</Text>
+        )}
+
         {children.map(child => {
           const sessions = state.studySessions.filter(s => s.userId === child.id)
           const tasks = state.tasks.filter(t => t.assignedTo === child.id)
@@ -73,6 +77,7 @@ const styles = StyleSheet.create({
   pageTitle: { fontSize: 18, fontWeight: '700', flex: 1 },
   logoutBtn: { backgroundColor: '#f1f5f9', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   logoutText: { fontSize: 12, color: '#64748b' },
+  empty: { textAlign: 'center', color: '#94a3b8', fontSize: 14, lineHeight: 22, padding: 32 },
   childCard: { backgroundColor: 'white', borderRadius: 16, padding: 20, borderTopWidth: 4, borderTopColor: '#4f9cf9', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2, gap: 12 },
   childHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   childAvatar: { fontSize: 36 },

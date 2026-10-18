@@ -1,8 +1,7 @@
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Modal, TextInput } from 'react-native'
-import { useRouter } from 'expo-router'
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Modal, TextInput, ScrollView } from 'react-native'
+import { useRouter, Redirect } from 'expo-router'
 import { useState } from 'react'
 import { useApp } from '../src/hooks/AppContext'
-import { MOCK_USERS } from '../src/utils/mockData'
 import { User } from '../src/types'
 
 /** 子どもが暗算では通りにくい 2桁×1桁 の問題を生成する（Families Policy 準拠のペアレンタルゲート） */
@@ -13,7 +12,7 @@ function makeChallenge() {
 }
 
 export default function LoginScreen() {
-  const { dispatch } = useApp()
+  const { state, dispatch } = useApp()
   const router = useRouter()
 
   const [gateUser, setGateUser] = useState<User | null>(null)
@@ -49,15 +48,19 @@ export default function LoginScreen() {
     }
   }
 
+  // 保護者が1人もいなければ初回登録へ（保護者がいないと設定画面に入れないため）
+  if (!state.users.some(u => u.role === 'parent')) return <Redirect href="/setup" />
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safe}>
+      <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <Text style={styles.emoji}>📚</Text>
         <Text style={styles.title}>まなびチーム</Text>
         <Text style={styles.subtitle}>だれでログインしますか？</Text>
       </View>
       <View style={styles.grid}>
-        {MOCK_USERS.map(user => (
+        {state.users.map(user => (
           <TouchableOpacity key={user.id} style={styles.card} onPress={() => handleSelect(user)}>
             <Text style={styles.avatar}>{user.avatar}</Text>
             <Text style={styles.name}>{user.name}</Text>
@@ -70,6 +73,7 @@ export default function LoginScreen() {
           </TouchableOpacity>
         ))}
       </View>
+      </ScrollView>
 
       <Modal visible={gateUser !== null} transparent animationType="fade" onRequestClose={closeGate}>
         <View style={styles.backdrop}>
@@ -107,7 +111,8 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f0f4ff', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  safe: { flex: 1, backgroundColor: '#f0f4ff' },
+  container: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   header: { alignItems: 'center', marginBottom: 40 },
   emoji: { fontSize: 56, marginBottom: 8 },
   title: { fontSize: 32, fontWeight: '700', color: '#1a202c' },

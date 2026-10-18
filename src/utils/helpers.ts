@@ -1,3 +1,12 @@
+import { Subject } from '../types'
+import { FALLBACK_SUBJECT_COLOR } from './defaults'
+
+export const getSubjectColor = (subjects: Subject[], name: string): string =>
+  subjects.find(s => s.name === name)?.color ?? FALLBACK_SUBJECT_COLOR
+
+export const makeId = (prefix: string): string =>
+  `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+
 export const formatDuration = (seconds: number): string => {
   const h = Math.floor(seconds / 3600)
   const m = Math.floor((seconds % 3600) / 60)

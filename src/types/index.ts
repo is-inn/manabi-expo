@@ -7,6 +7,12 @@ export interface User {
   avatar: string
 }
 
+export interface Subject {
+  id: string
+  name: string
+  color: string
+}
+
 export interface Task {
   id: string
   title: string
@@ -35,6 +41,7 @@ export interface TimerState {
 export interface AppState {
   currentUser: User | null
   users: User[]
+  subjects: Subject[]
   tasks: Task[]
   studySessions: StudySession[]
   timerState: TimerState
@@ -43,6 +50,12 @@ export interface AppState {
 export type AppAction =
   | { type: 'HYDRATE'; payload: Partial<AppState> }
   | { type: 'SET_USER'; payload: User }
+  | { type: 'ADD_USER'; payload: User }
+  | { type: 'UPDATE_USER'; payload: { id: string; name: string; avatar: string } }
+  | { type: 'DELETE_USER'; payload: string }
+  | { type: 'ADD_SUBJECT'; payload: Subject }
+  | { type: 'UPDATE_SUBJECT'; payload: Subject }
+  | { type: 'DELETE_SUBJECT'; payload: string }
   | { type: 'ADD_TASK'; payload: Task }
   | { type: 'TOGGLE_TASK'; payload: string }
   | { type: 'DELETE_TASK'; payload: string }

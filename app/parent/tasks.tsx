@@ -1,26 +1,28 @@
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView, SafeAreaView } from 'react-native'
 import { useState } from 'react'
 import { useApp } from '../../src/hooks/AppContext'
-import { SUBJECTS, SUBJECT_COLORS } from '../../src/utils/mockData'
-import { getTodayStr } from '../../src/utils/helpers'
+import { getTodayStr, getSubjectColor } from '../../src/utils/helpers'
 import { Task } from '../../src/types'
 
 export default function ParentTasks() {
   const { state, dispatch } = useApp()
   const [adding, setAdding] = useState(false)
   const [title, setTitle] = useState('')
-  const [subject, setSubject] = useState(SUBJECTS[0])
+  const [subject, setSubject] = useState('')
   const [assignedTo, setAssignedTo] = useState('')
 
   const children = state.users.filter(u => u.role === 'child')
+  // 科目が消された／未選択のときは先頭の科目、こどもが1人だけなら自動でその子
+  const subjectName = state.subjects.some(s => s.name === subject) ? subject : (state.subjects[0]?.name ?? '')
+  const assigneeId = assignedTo || (children.length === 1 ? children[0].id : '')
 
   const handleAdd = () => {
-    if (!title.trim() || !assignedTo) return
+    if (!title.trim() || !assigneeId || !subjectName) return
     const task: Task = {
       id: `t-${Date.now()}`,
-      title,
-      subject,
-      assignedTo,
+      title: title.trim(),
+      subject: subjectName,
+      assignedTo: assigneeId,
       dueDate: getTodayStr(),
       completed: false,
       createdAt: getTodayStr(),
@@ -50,19 +52,22 @@ export default function ParentTasks() {
             />
             <Text style={styles.formLabel}>科目</Text>
             <View style={styles.subjectRow}>
-              {SUBJECTS.map(s => (
-                <TouchableOpacity key={s} onPress={() => setSubject(s)}
-                  style={[styles.subjectBtn, { backgroundColor: subject === s ? SUBJECT_COLORS[s] : '#f1f5f9' }]}>
-                  <Text style={[styles.subjectText, { color: subject === s ? 'white' : '#64748b' }]}>{s}</Text>
+              {state.subjects.map(s => (
+                <TouchableOpacity key={s.id} onPress={() => setSubject(s.name)}
+                  style={[styles.subjectBtn, { backgroundColor: subjectName === s.name ? s.color : '#f1f5f9' }]}>
+                  <Text style={[styles.subjectText, { color: subjectName === s.name ? 'white' : '#64748b' }]}>{s.name}</Text>
                 </TouchableOpacity>
               ))}
             </View>
             <Text style={styles.formLabel}>担当者</Text>
+            {children.length === 0 && (
+              <Text style={styles.metaText}>先に「設定」タブでこどもを登録してください</Text>
+            )}
             <View style={styles.subjectRow}>
               {children.map(c => (
                 <TouchableOpacity key={c.id} onPress={() => setAssignedTo(c.id)}
-                  style={[styles.subjectBtn, { backgroundColor: assignedTo === c.id ? '#4f9cf9' : '#f1f5f9' }]}>
-                  <Text style={[styles.subjectText, { color: assignedTo === c.id ? 'white' : '#64748b' }]}>{c.avatar} {c.name}</Text>
+                  style={[styles.subjectBtn, { backgroundColor: assigneeId === c.id ? '#4f9cf9' : '#f1f5f9' }]}>
+                  <Text style={[styles.subjectText, { color: assigneeId === c.id ? 'white' : '#64748b' }]}>{c.avatar} {c.name}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -85,8 +90,8 @@ export default function ParentTasks() {
               <View style={styles.taskInfo}>
                 <Text style={[styles.taskTitle, task.completed && styles.taskTitleDone]}>{task.title}</Text>
                 <View style={styles.taskMeta}>
-                  <View style={[styles.badge, { backgroundColor: `${SUBJECT_COLORS[task.subject]}22` }]}>
-                    <Text style={[styles.badgeText, { color: SUBJECT_COLORS[task.subject] }]}>{task.subject}</Text>
+                  <View style={[styles.badge, { backgroundColor: `${getSubjectColor(state.subjects, task.subject)}22` }]}>
+                    <Text style={[styles.badgeText, { color: getSubjectColor(state.subjects, task.subject) }]}>{task.subject}</Text>
                   </View>
                   {assignee && <Text style={styles.metaText}>{assignee.avatar} {assignee.name}</Text>}
                 </View>

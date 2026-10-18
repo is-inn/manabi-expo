@@ -1,7 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native'
 import { useApp } from '../../src/hooks/AppContext'
-import { formatDuration, getTotalStudyTime, getStreak } from '../../src/utils/helpers'
-import { SUBJECT_COLORS } from '../../src/utils/mockData'
+import { formatDuration, getTotalStudyTime, getStreak, getSubjectColor } from '../../src/utils/helpers'
 
 export default function ParentProgress() {
   const { state } = useApp()
@@ -75,7 +74,7 @@ export default function ParentProgress() {
                         <Text style={styles.subjectDur}>{formatDuration(dur)}</Text>
                       </View>
                       <View style={styles.subjectBarBg}>
-                        <View style={[styles.subjectBarFill, { width: `${(dur / maxDuration) * 100}%` as any, backgroundColor: SUBJECT_COLORS[subject] || '#4f9cf9' }]} />
+                        <View style={[styles.subjectBarFill, { width: `${(dur / maxDuration) * 100}%` as any, backgroundColor: getSubjectColor(state.subjects, subject) }]} />
                       </View>
                     </View>
                   ))}

@@ -1,16 +1,18 @@
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView } from 'react-native'
 import { useApp } from '../../src/hooks/AppContext'
-import { SUBJECTS, SUBJECT_COLORS } from '../../src/utils/mockData'
-import { formatDuration, getTodayStr, getTotalStudyTime, getStreak } from '../../src/utils/helpers'
+import { formatDuration, getTodayStr, getTotalStudyTime, getStreak, getSubjectColor } from '../../src/utils/helpers'
 import { StudySession } from '../../src/types'
 import { useState } from 'react'
 
 export default function ChildTimer() {
   const { state, dispatch } = useApp()
   const { timerState, currentUser } = state
-  const [selectedSubject, setSelectedSubject] = useState(SUBJECTS[0])
+  const [selected, setSelected] = useState('')
 
   if (!currentUser) return null
+
+  // 科目が消された／未選択のときは先頭の科目
+  const selectedSubject = state.subjects.some(s => s.name === selected) ? selected : (state.subjects[0]?.name ?? '')
 
   const mySessions = state.studySessions.filter(s => s.userId === currentUser.id)
   const totalTime = getTotalStudyTime(mySessions)
@@ -32,7 +34,7 @@ export default function ChildTimer() {
     dispatch({ type: 'SAVE_SESSION', payload: session })
   }
 
-  const color = SUBJECT_COLORS[timerState.isRunning ? timerState.subject : selectedSubject] || '#4f9cf9'
+  const color = getSubjectColor(state.subjects, timerState.isRunning ? timerState.subject : selectedSubject)
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -44,13 +46,13 @@ export default function ChildTimer() {
           <View style={styles.card}>
             <Text style={styles.sectionLabel}>科目を選んでね</Text>
             <View style={styles.subjectRow}>
-              {SUBJECTS.map(s => (
+              {state.subjects.map(s => (
                 <TouchableOpacity
-                  key={s}
-                  onPress={() => setSelectedSubject(s)}
-                  style={[styles.subjectBtn, { backgroundColor: selectedSubject === s ? SUBJECT_COLORS[s] : '#f1f5f9' }]}
+                  key={s.id}
+                  onPress={() => setSelected(s.name)}
+                  style={[styles.subjectBtn, { backgroundColor: selectedSubject === s.name ? s.color : '#f1f5f9' }]}
                 >
-                  <Text style={[styles.subjectText, { color: selectedSubject === s ? 'white' : '#64748b' }]}>{s}</Text>
+                  <Text style={[styles.subjectText, { color: selectedSubject === s.name ? 'white' : '#64748b' }]}>{s.name}</Text>
                 </TouchableOpacity>
               ))}
             </View>

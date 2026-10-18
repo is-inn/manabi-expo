@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView } from 'react-native'
 import { useApp } from '../../src/hooks/AppContext'
-import { SUBJECT_COLORS } from '../../src/utils/mockData'
+import { getSubjectColor } from '../../src/utils/helpers'
 
 export default function ChildTasks() {
   const { state, dispatch } = useApp()
@@ -40,8 +40,8 @@ export default function ChildTasks() {
             <View style={styles.taskInfo}>
               <Text style={[styles.taskTitle, task.completed && styles.taskTitleDone]}>{task.title}</Text>
               <View style={styles.taskMeta}>
-                <View style={[styles.subjectBadge, { backgroundColor: `${SUBJECT_COLORS[task.subject]}22` }]}>
-                  <Text style={[styles.subjectText, { color: SUBJECT_COLORS[task.subject] }]}>{task.subject}</Text>
+                <View style={[styles.subjectBadge, { backgroundColor: `${getSubjectColor(state.subjects, task.subject)}22` }]}>
+                  <Text style={[styles.subjectText, { color: getSubjectColor(state.subjects, task.subject) }]}>{task.subject}</Text>
                 </View>
                 <Text style={styles.dueDate}>📅 {task.dueDate}</Text>
               </View>
