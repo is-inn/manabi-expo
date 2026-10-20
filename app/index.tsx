@@ -48,6 +48,9 @@ export default function LoginScreen() {
     }
   }
 
+  // 使い方によって入口を分ける
+  if (state.mode === 'solo') return <Redirect href="/solo/home" />
+  if (state.mode === null && state.users.length === 0) return <Redirect href="/welcome" />
   // 保護者が1人もいなければ初回登録へ（保護者がいないと設定画面に入れないため）
   if (!state.users.some(u => u.role === 'parent')) return <Redirect href="/setup" />
 

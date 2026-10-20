@@ -55,7 +55,7 @@ export default function SetupScreen() {
         />
 
         <TouchableOpacity
-          onPress={() => router.replace('/')}
+          onPress={() => { dispatch({ type: 'SET_MODE', payload: 'family' }); router.replace('/') }}
           disabled={!ready}
           style={[styles.startBtn, !ready && styles.startDisabled]}
         >

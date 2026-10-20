@@ -1,22 +1,19 @@
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView } from 'react-native'
 import { useState } from 'react'
+import { useRouter } from 'expo-router'
 import { useApp } from '../../src/hooks/AppContext'
 import MemberForm from '../../src/components/MemberForm'
-import SubjectForm from '../../src/components/SubjectForm'
+import SubjectsSection from '../../src/components/SubjectsSection'
 import ConfirmModal from '../../src/components/ConfirmModal'
 import { makeId } from '../../src/utils/helpers'
-import { User, Subject } from '../../src/types'
+import { User } from '../../src/types'
 
 export default function ParentSettings() {
   const { state, dispatch } = useApp()
+  const router = useRouter()
   const [addingUser, setAddingUser] = useState(false)
   const [editingUserId, setEditingUserId] = useState<string | null>(null)
-  const [addingSubject, setAddingSubject] = useState(false)
-  const [editingSubjectId, setEditingSubjectId] = useState<string | null>(null)
   const [deleteUser, setDeleteUser] = useState<User | null>(null)
-  const [deleteSubject, setDeleteSubject] = useState<Subject | null>(null)
-
-  const names = state.subjects.map(s => s.name)
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -68,46 +65,20 @@ export default function ParentSettings() {
         ))}
 
         {/* ---- 科目 ---- */}
-        <View style={[styles.sectionHeader, { marginTop: 12 }]}>
-          <Text style={styles.sectionTitle}>科目</Text>
-          <TouchableOpacity onPress={() => { setAddingSubject(!addingSubject); setEditingSubjectId(null) }} style={styles.addBtn}>
-            <Text style={styles.addBtnText}>{addingSubject ? 'キャンセル' : '＋ 追加'}</Text>
-          </TouchableOpacity>
+        <View style={{ marginTop: 12 }}>
+          <SubjectsSection />
         </View>
 
-        {addingSubject && (
-          <SubjectForm
-            existingNames={names}
-            usedColors={state.subjects.map(s => s.color)}
-            submitLabel="追加する"
-            onSubmit={v => dispatch({ type: 'ADD_SUBJECT', payload: { id: makeId('sub'), name: v.name, color: v.color } })}
-          />
-        )}
-
-        {state.subjects.map(s => editingSubjectId === s.id ? (
-          <SubjectForm
-            key={s.id}
-            initial={{ name: s.name, color: s.color }}
-            existingNames={names.filter(n => n !== s.name)}
-            submitLabel="保存"
-            onSubmit={v => { dispatch({ type: 'UPDATE_SUBJECT', payload: { id: s.id, name: v.name, color: v.color } }); setEditingSubjectId(null) }}
-            onCancel={() => setEditingSubjectId(null)}
-          />
-        ) : (
-          <View key={s.id} style={styles.row}>
-            <View style={[styles.colorDot, { backgroundColor: s.color }]} />
-            <Text style={[styles.rowName, styles.rowInfo]}>{s.name}</Text>
-            <TouchableOpacity onPress={() => { setEditingSubjectId(s.id); setAddingSubject(false) }} style={styles.smallBtn}>
-              <Text style={styles.smallBtnText}>編集</Text>
-            </TouchableOpacity>
-            {state.subjects.length > 1 && (
-              <TouchableOpacity onPress={() => setDeleteSubject(s)}>
-                <Text style={styles.deleteBtn}>×</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        ))}
-        <Text style={styles.note}>科目の名前を変えると、これまでのタスクや学習記録の科目名も一緒に変わります。</Text>
+        {/* ---- 使い方 ---- */}
+        <View style={[styles.modeCard, { marginTop: 12 }]}>
+          <Text style={styles.sectionTitle}>使い方</Text>
+          <Text style={styles.modeDesc}>
+            ひとりで勉強する使い方に切り替えられます。家族の登録やタスクはそのまま残ります。
+          </Text>
+          <TouchableOpacity onPress={() => router.replace('/welcome')} style={styles.modeBtn}>
+            <Text style={styles.modeBtnText}>🧑‍🎓 ひとりで使うモードへ</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       <ConfirmModal
@@ -118,13 +89,6 @@ export default function ParentSettings() {
           : 'この保護者を削除します。元に戻せません。'}
         onConfirm={() => { if (deleteUser) dispatch({ type: 'DELETE_USER', payload: deleteUser.id }); setDeleteUser(null) }}
         onCancel={() => setDeleteUser(null)}
-      />
-      <ConfirmModal
-        visible={deleteSubject !== null}
-        title={`「${deleteSubject?.name ?? ''}」を削除しますか？`}
-        message="これまでの学習記録は残りますが、科目の色はグレーになります。"
-        onConfirm={() => { if (deleteSubject) dispatch({ type: 'DELETE_SUBJECT', payload: deleteSubject.id }); setDeleteSubject(null) }}
-        onCancel={() => setDeleteSubject(null)}
       />
     </SafeAreaView>
   )
@@ -140,12 +104,14 @@ const styles = StyleSheet.create({
   addBtnText: { color: 'white', fontWeight: '700', fontSize: 13 },
   row: { backgroundColor: 'white', borderRadius: 12, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
   avatar: { fontSize: 28 },
-  colorDot: { width: 18, height: 18, borderRadius: 9 },
   rowInfo: { flex: 1 },
   rowName: { fontSize: 15, fontWeight: '600' },
   rowSub: { fontSize: 11, color: '#94a3b8', marginTop: 2 },
   smallBtn: { backgroundColor: '#f1f5f9', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   smallBtnText: { fontSize: 12, color: '#64748b', fontWeight: '600' },
   deleteBtn: { fontSize: 22, color: '#cbd5e1', paddingHorizontal: 4 },
-  note: { fontSize: 11, color: '#94a3b8', lineHeight: 16 },
+  modeCard: { backgroundColor: 'white', borderRadius: 16, padding: 16, gap: 10 },
+  modeDesc: { fontSize: 12, color: '#64748b', lineHeight: 18 },
+  modeBtn: { backgroundColor: '#e8fef3', padding: 12, borderRadius: 10, alignItems: 'center' },
+  modeBtnText: { color: '#1e8e5a', fontWeight: '700', fontSize: 14 },
 })

@@ -19,7 +19,7 @@ export default function ChildTimer() {
   const streak = getStreak(mySessions)
 
   const handleStart = () => {
-    dispatch({ type: 'START_TIMER', payload: { subject: selectedSubject, userId: currentUser.id } })
+    dispatch({ type: 'START_TIMER', payload: { subject: selectedSubject, userId: currentUser.id, now: Date.now() } })
   }
 
   const handleStop = () => {

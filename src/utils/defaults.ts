@@ -17,5 +17,12 @@ export const FALLBACK_SUBJECT_COLOR = '#9ca3af'
 
 export const AVATARS = ['👨', '👩', '👴', '👵', '👦', '👧', '🧒', '👶', '🐱', '🐶', '🐰', '🐻', '🦊', '🐼']
 
+/** ひとりモードの学習記録に付ける userId */
+export const SOLO_USER_ID = 'solo'
+export const DEFAULT_GOAL_MINUTES = 60
+export const MAX_GOAL_MINUTES = 600
+/** カウントダウンタイマーの候補（分） */
+export const TIMER_PRESETS = [10, 15, 25, 45, 60]
+
 export const MAX_NAME_LENGTH = 10
 export const MAX_SUBJECT_LENGTH = 8
