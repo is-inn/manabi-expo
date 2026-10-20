@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView, SafeAreaView } from 'react-native'
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useState } from 'react'
 import { useApp } from '../../src/hooks/AppContext'
 import { getTodayStr, getSubjectColor } from '../../src/utils/helpers'

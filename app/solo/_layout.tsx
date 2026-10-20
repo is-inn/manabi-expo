@@ -10,7 +10,7 @@ export default function SoloLayout() {
   return (
     <Tabs screenOptions={{
       headerShown: false,
-      tabBarStyle: { backgroundColor: 'white', borderTopColor: '#e2e8f0', height: 60 },
+      tabBarStyle: { backgroundColor: 'white', borderTopColor: '#e2e8f0' },
       tabBarActiveTintColor: '#1e8e5a',
       tabBarInactiveTintColor: '#94a3b8',
       tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },

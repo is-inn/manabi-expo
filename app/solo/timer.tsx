@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView, SafeAreaView, Modal } from 'react-native'
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView, Modal } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useEffect, useState } from 'react'
 import { useApp } from '../../src/hooks/AppContext'
 import GoalStepper from '../../src/components/GoalStepper'

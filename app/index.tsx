@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Modal, TextInput, ScrollView } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, ScrollView } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter, Redirect } from 'expo-router'
 import { useState } from 'react'
 import { useApp } from '../src/hooks/AppContext'

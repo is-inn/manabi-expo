@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { useApp } from '../../src/hooks/AppContext'
 import { SOLO_USER_ID } from '../../src/utils/defaults'

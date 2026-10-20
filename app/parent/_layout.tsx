@@ -5,7 +5,7 @@ export default function ParentLayout() {
   return (
     <Tabs screenOptions={{
       headerShown: false,
-      tabBarStyle: { backgroundColor: 'white', borderTopColor: '#e2e8f0', height: 60 },
+      tabBarStyle: { backgroundColor: 'white', borderTopColor: '#e2e8f0' },
       tabBarActiveTintColor: '#4f9cf9',
       tabBarInactiveTintColor: '#94a3b8',
       tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },

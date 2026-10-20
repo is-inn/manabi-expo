@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native'
+import { View, Text, StyleSheet, ScrollView } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useApp } from '../../src/hooks/AppContext'
 import { formatDuration, getTotalStudyTime, getStreak, getSubjectColor, toDateStr } from '../../src/utils/helpers'
 
