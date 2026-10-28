@@ -5,7 +5,8 @@ import { formatDuration, getTotalStudyTime, getStreak, getSubjectColor, toDateSt
 
 export default function ParentProgress() {
   const { state } = useApp()
-  const children = state.users.filter(u => u.role === 'child')
+  // こどもが先、そのあとに保護者（保護者の「じぶんの勉強」の記録も一緒に見られる）
+  const children = [...state.users.filter(u => u.role === 'child'), ...state.users.filter(u => u.role === 'parent')]
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -37,6 +38,7 @@ export default function ParentProgress() {
               <View style={styles.childRow}>
                 <Text style={styles.childAvatar}>{child.avatar}</Text>
                 <Text style={styles.childName}>{child.name}</Text>
+                {child.role === 'parent' && <Text style={styles.roleTag}>保護者</Text>}
               </View>
 
               <View style={styles.statsRow}>
@@ -97,6 +99,7 @@ const styles = StyleSheet.create({
   childRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   childAvatar: { fontSize: 28 },
   childName: { fontSize: 18, fontWeight: '700' },
+  roleTag: { fontSize: 11, color: '#4f9cf9', backgroundColor: '#e8f3fe', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 99, overflow: 'hidden' },
   statsRow: { flexDirection: 'row', gap: 10 },
   statBox: { flex: 1, backgroundColor: '#e8f3fe', borderRadius: 10, padding: 12 },
   statLabel: { fontSize: 11, color: '#4f9cf9', fontWeight: '600', marginBottom: 2 },
