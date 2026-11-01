@@ -95,6 +95,7 @@ export interface AppState {
 
 export type AppAction =
   | { type: 'HYDRATE'; payload: Partial<AppState> }
+  | { type: 'REPLACE_STATE'; payload: Partial<AppState> }
   | { type: 'SET_MODE'; payload: Mode }
   | { type: 'SET_SOLO_PROFILE'; payload: SoloProfile }
   | { type: 'SET_USER'; payload: User }

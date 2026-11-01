@@ -30,6 +30,8 @@ const initialState: AppState = {
 function reducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case 'HYDRATE': return { ...state, ...action.payload }
+    // サーバーのバックアップで丸ごと置き換える（端末の今のデータは消える）。タイマーは止める
+    case 'REPLACE_STATE': return { ...initialState, ...action.payload, accountId: action.payload.accountId ?? state.accountId, timerState: IDLE_TIMER }
     case 'SET_MODE': return { ...state, mode: action.payload }
     case 'SET_SOLO_PROFILE': return { ...state, solo: action.payload }
     case 'SET_USER': return { ...state, currentUser: action.payload }
@@ -144,8 +146,22 @@ const AppContext = createContext<{ state: AppState; dispatch: React.Dispatch<App
 /** 永続化する部分だけを抜き出す（timerState は揮発でよい） */
 type Persisted = Pick<AppState, 'mode' | 'accountId' | 'goals' | 'visibility' | 'currentUser' | 'users' | 'solo' | 'subjects' | 'tasks' | 'studySessions'>
 
+/** 保存・バックアップする部分だけを取り出す */
+export const toPersisted = (state: AppState): Persisted => ({
+  mode: state.mode,
+  accountId: state.accountId,
+  goals: state.goals,
+  visibility: state.visibility,
+  currentUser: state.currentUser,
+  users: state.users,
+  solo: state.solo,
+  subjects: state.subjects,
+  tasks: state.tasks,
+  studySessions: state.studySessions,
+})
+
 /** 保存データの形を確かめて、使えるものだけ取り出す（壊れていても落とさない） */
-function sanitize(saved: Partial<Persisted>): Partial<Persisted> {
+export function sanitize(saved: Partial<Persisted>): Partial<Persisted> {
   const out: Partial<Persisted> = {}
   if (Array.isArray(saved.users)) out.users = saved.users
   if (Array.isArray(saved.subjects) && saved.subjects.length > 0) out.subjects = saved.subjects

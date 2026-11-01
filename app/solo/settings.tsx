@@ -43,6 +43,14 @@ export default function SoloSettings() {
         <SubjectsSection />
 
         <View style={styles.card}>
+          <Text style={styles.sectionTitle}>アカウント（あとから登録できます）</Text>
+          <Text style={styles.hint}>登録すると、記録がサーバーに保存され、機種変更しても引き継げます。登録しなくても使えます。</Text>
+          <TouchableOpacity onPress={() => router.push('/account')} style={styles.modeBtn}>
+            <Text style={styles.modeBtnText}>👤 会員登録・ログイン</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.card}>
           <Text style={styles.sectionTitle}>使い方</Text>
           <Text style={styles.hint}>家族で使う形に切り替えられます。ひとりの記録はそのまま残ります。</Text>
           <TouchableOpacity onPress={() => router.replace('/welcome')} style={styles.modeBtn}>

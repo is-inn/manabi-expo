@@ -91,6 +91,16 @@ export default function ParentSettings() {
           <SubjectsSection />
         </View>
 
+        {/* ---- アカウント ---- */}
+        <View style={[styles.modeCard, { marginTop: 12 }]}>
+          <Text style={styles.sectionTitle}>アカウント（あとから登録できます）</Text>
+          <Text style={styles.modeDesc}>
+            登録すると、記録がサーバーに保存され、機種変更しても引き継げます。登録しなくても使えます。
+          </Text>
+          <TouchableOpacity onPress={() => router.push('/account')} style={styles.modeBtn}>
+            <Text style={styles.modeBtnText}>👤 会員登録・ログイン</Text>
+          </TouchableOpacity>
+        </View>
         {/* ---- 使い方 ---- */}
         <View style={[styles.modeCard, { marginTop: 12 }]}>
           <Text style={styles.sectionTitle}>使い方</Text>
