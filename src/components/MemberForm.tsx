@@ -3,6 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-nativ
 import { ParentVisibility, Role } from '../types'
 import { ALL_PRIVATE, AVATARS, MAX_NAME_LENGTH } from '../utils/defaults'
 import VisibilitySwitches from './VisibilitySwitches'
+import Avatar from './Avatar'
+import { isPhotoAvatar, pickPhotoAvatar } from '../utils/avatar'
 
 export interface MemberValue {
   name: string
@@ -28,7 +30,8 @@ export default function MemberForm({ initial, defaultRole = 'child', lockRole, s
   const [name, setName] = useState(initial?.name ?? '')
   const [avatar, setAvatar] = useState(initial?.avatar ?? AVATARS[defaultRole === 'parent' ? 0 : 4])
   const [role, setRole] = useState<Role>(initial?.role ?? defaultRole)
-  const [visibility, setVisibility] = useState<ParentVisibility>(ALL_PRIVATE)
+  const [photoError, setPhotoError] = useState('')
+  const [visibility, setVisibility] =useState<ParentVisibility>(ALL_PRIVATE)
   const trimmed = name.trim()
   const askVisibility = !initial && role === 'parent'
 
@@ -71,6 +74,28 @@ export default function MemberForm({ initial, defaultRole = 'child', lockRole, s
           </TouchableOpacity>
         ))}
       </View>
+      <View style={styles.photoRow}>
+        {isPhotoAvatar(avatar) && (
+          <View style={[styles.avatarBtn, styles.avatarOn]}>
+            <Avatar avatar={avatar} size={36} />
+          </View>
+        )}
+        <TouchableOpacity
+          onPress={async () => {
+            setPhotoError('')
+            try {
+              const uri = await pickPhotoAvatar()
+              if (uri) setAvatar(uri)
+            } catch {
+              setPhotoError('写真を読み込めませんでした。もう一度ためしてください。')
+            }
+          }}
+          style={styles.photoBtn}
+        >
+          <Text style={styles.photoBtnText}>📷 {isPhotoAvatar(avatar) ? '写真をえらびなおす' : '自分の写真からえらぶ'}</Text>
+        </TouchableOpacity>
+      </View>
+      {photoError !== '' && <Text style={styles.photoError}>{photoError}</Text>}
 
       {askVisibility && (
         <>
@@ -106,6 +131,10 @@ const styles = StyleSheet.create({
   avatarBtn: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8fafc', borderWidth: 2, borderColor: 'transparent' },
   avatarOn: { borderColor: '#4f9cf9', backgroundColor: '#e8f3fe' },
   avatarText: { fontSize: 22 },
+  photoRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  photoBtn: { backgroundColor: '#f1f5f9', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10 },
+  photoBtnText: { fontSize: 13, fontWeight: '600', color: '#4f9cf9' },
+  photoError: { fontSize: 11, color: '#f97b4f' },
   btnRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
   btn: { flex: 1, padding: 12, borderRadius: 10, alignItems: 'center' },
   cancel: { backgroundColor: '#f1f5f9' },

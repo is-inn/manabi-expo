@@ -38,6 +38,7 @@ export default function StudyTimer({ userId, title = '⏱️ 勉強をけいそ�
 
   const mine = timerState.sessionUserId === userId
   const running = timerState.isRunning && mine
+  const paused = running && timerState.pausedAt > 0
   // 止めたあと、まだ保存も破棄もしていない状態
   const pending = !timerState.isRunning && mine && timerState.elapsed > 0
   // ほかの人のタイマーが動いている／記録待ちのとき、上書きして始めてしまわないようにする
@@ -69,7 +70,9 @@ export default function StudyTimer({ userId, title = '⏱️ 勉強をけいそ�
     // 止めた瞬間の正確な秒数にそろえてから止める
     dispatch({ type: 'TICK_TIMER', payload: { now: Date.now() } })
     dispatch({ type: 'STOP_TIMER' })
-    const seconds = Math.floor((Date.now() - timerState.startedAt) / 1000)
+    const seconds = timerState.pausedAt > 0
+      ? timerState.elapsed
+      : Math.floor((Date.now() - timerState.startedAt - timerState.pausedMs) / 1000)
     if (seconds < MIN_SAVE_SECONDS) dispatch({ type: 'RESET_TIMER' })
     else setFinishOpen(true)
   }
@@ -160,15 +163,23 @@ export default function StudyTimer({ userId, title = '⏱️ 勉強をけいそ�
         {!(otherBusy && idle) && (
           <View style={[styles.card, styles.timerCard]}>
             <Text style={styles.studyingLabel}>
-              {idle ? (isCountdown ? `${minutes}分のタイマー` : 'ストップウォッチ') : `📖 ${timerState.subject}${running ? 'を勉強中' : '（おわり）'}`}
+              {idle ? (isCountdown ? `${minutes}分のタイマー` : 'ストップウォッチ') : `📖 ${timerState.subject}${paused ? '（一時停止中）' : running ? 'を勉強中' : '（おわり）'}`}
             </Text>
             <View style={[styles.circle, { borderColor: color }]}>
               <Text style={[styles.clock, { color }]}>{formatClock(display)}</Text>
             </View>
             {running ? (
-              <TouchableOpacity onPress={stop} style={[styles.mainBtn, { backgroundColor: '#fee2e2' }]}>
-                <Text style={[styles.mainBtnText, { color: '#ef4444' }]}>⏹ おわる</Text>
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity
+                  onPress={() => dispatch({ type: paused ? 'RESUME_TIMER' : 'PAUSE_TIMER', payload: { now: Date.now() } })}
+                  style={[styles.mainBtn, { backgroundColor: paused ? color : '#f1f5f9' }]}
+                >
+                  <Text style={[styles.mainBtnText, { color: paused ? 'white' : '#64748b' }]}>{paused ? '▶ つづける' : '⏸ 一時停止'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={stop} style={[styles.mainBtn, { backgroundColor: '#fee2e2' }]}>
+                  <Text style={[styles.mainBtnText, { color: '#ef4444' }]}>⏹ おわる</Text>
+                </TouchableOpacity>
+              </>
             ) : pending ? (
               <TouchableOpacity onPress={() => setFinishOpen(true)} style={[styles.mainBtn, { backgroundColor: color }]}>
                 <Text style={[styles.mainBtnText, { color: 'white' }]}>きろくする</Text>

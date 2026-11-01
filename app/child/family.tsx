@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useApp } from '../../src/hooks/AppContext'
 import { ALL_PRIVATE } from '../../src/utils/defaults'
+import Avatar from '../../src/components/Avatar'
 import { formatDuration, getDaysUntil, getSubjectColor, getSubjectTotals, getTotalStudyTime, getWeekSessions } from '../../src/utils/helpers'
 
 /** 「おうちの人」: 保護者が公開にした項目だけを表示する。非公開の項目は描画しない */
@@ -29,7 +30,7 @@ export default function ChildFamily() {
 
           return (
             <View key={p.id} style={styles.card}>
-              <Text style={styles.name}>{p.avatar} {p.name}</Text>
+              <View style={styles.nameRow}><Avatar avatar={p.avatar} size={32} /><Text style={styles.name}>{p.name}</Text></View>
               {!anyVisible && <Text style={styles.empty}>公開されている項目はありません</Text>}
 
               {vis.total && <Row label="累計の学習時間" value={formatDuration(getTotalStudyTime(sessions))} />}
@@ -104,6 +105,7 @@ const styles = StyleSheet.create({
   pageTitle: { fontSize: 20, fontWeight: '700' },
   empty: { fontSize: 13, color: '#94a3b8' },
   card: { backgroundColor: 'white', borderRadius: 16, padding: 16, gap: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   name: { fontSize: 18, fontWeight: '700', color: '#1a202c' },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   rowLabel: { fontSize: 13, color: '#64748b', fontWeight: '600' },

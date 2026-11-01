@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useApp } from '../../src/hooks/AppContext'
+import Avatar from '../../src/components/Avatar'
 import { formatDuration, getTotalStudyTime, getStreak, getSubjectColor, toDateStr } from '../../src/utils/helpers'
 
 export default function ParentProgress() {
@@ -36,7 +37,7 @@ export default function ParentProgress() {
           return (
             <View key={child.id} style={styles.card}>
               <View style={styles.childRow}>
-                <Text style={styles.childAvatar}>{child.avatar}</Text>
+                <Avatar avatar={child.avatar} size={36} />
                 <Text style={styles.childName}>{child.name}</Text>
                 {child.role === 'parent' && <Text style={styles.roleTag}>保護者</Text>}
               </View>

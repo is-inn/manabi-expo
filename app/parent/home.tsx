@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useEffect } from 'react'
 import { useRouter } from 'expo-router'
 import { useApp } from '../../src/hooks/AppContext'
+import Avatar from '../../src/components/Avatar'
 import { formatDuration, getTotalStudyTime, getStreak } from '../../src/utils/helpers'
 
 export default function ParentHome() {
@@ -42,7 +43,7 @@ export default function ParentHome() {
           return (
             <View key={child.id} style={styles.childCard}>
               <View style={styles.childHeader}>
-                <Text style={styles.childAvatar}>{child.avatar}</Text>
+                <Avatar avatar={child.avatar} size={36} />
                 <View>
                   <Text style={styles.childName}>{child.name}</Text>
                   <Text style={styles.childStreak}>🔥 {streak}日連続</Text>

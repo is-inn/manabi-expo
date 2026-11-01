@@ -35,6 +35,7 @@ export default function ChildTimer() {
     dispatch({ type: 'SAVE_SESSION', payload: session })
   }
 
+  const paused = timerState.isRunning && timerState.pausedAt > 0
   const color = getSubjectColor(state.subjects, timerState.isRunning ? timerState.subject : selectedSubject)
 
   return (
@@ -63,11 +64,19 @@ export default function ChildTimer() {
         {/* Timer */}
         <View style={[styles.card, styles.timerCard]}>
           {timerState.isRunning && (
-            <Text style={styles.studyingLabel}>📖 {timerState.subject}を勉強中</Text>
+            <Text style={styles.studyingLabel}>📖 {timerState.subject}{paused ? '（一時停止中）' : 'を勉強中'}</Text>
           )}
           <View style={[styles.timerCircle, { borderColor: color }]}>
             <Text style={[styles.timerText, { color }]}>{formatDuration(timerState.elapsed)}</Text>
           </View>
+          {timerState.isRunning && (
+            <TouchableOpacity
+              onPress={() => dispatch({ type: paused ? 'RESUME_TIMER' : 'PAUSE_TIMER', payload: { now: Date.now() } })}
+              style={[styles.timerBtn, { backgroundColor: paused ? color : '#f1f5f9' }]}
+            >
+              <Text style={[styles.timerBtnText, { color: paused ? 'white' : '#64748b' }]}>{paused ? '▶ つづける' : '⏸ 一時停止'}</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             onPress={timerState.isRunning ? handleStop : handleStart}
             style={[styles.timerBtn, { backgroundColor: timerState.isRunning ? '#fee2e2' : color }]}

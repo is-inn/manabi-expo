@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useState } from 'react'
 import { useApp } from '../../src/hooks/AppContext'
 import { getTodayStr, getSubjectColor } from '../../src/utils/helpers'
+import { avatarAsText } from '../../src/utils/avatar'
 import { Task } from '../../src/types'
 
 export default function ParentTasks() {
@@ -68,7 +69,7 @@ export default function ParentTasks() {
               {children.map(c => (
                 <TouchableOpacity key={c.id} onPress={() => setAssignedTo(c.id)}
                   style={[styles.subjectBtn, { backgroundColor: assigneeId === c.id ? '#4f9cf9' : '#f1f5f9' }]}>
-                  <Text style={[styles.subjectText, { color: assigneeId === c.id ? 'white' : '#64748b' }]}>{c.avatar} {c.name}</Text>
+                  <Text style={[styles.subjectText, { color: assigneeId === c.id ? 'white' : '#64748b' }]}>{avatarAsText(c.avatar)} {c.name}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -94,7 +95,7 @@ export default function ParentTasks() {
                   <View style={[styles.badge, { backgroundColor: `${getSubjectColor(state.subjects, task.subject)}22` }]}>
                     <Text style={[styles.badgeText, { color: getSubjectColor(state.subjects, task.subject) }]}>{task.subject}</Text>
                   </View>
-                  {assignee && <Text style={styles.metaText}>{assignee.avatar} {assignee.name}</Text>}
+                  {assignee && <Text style={styles.metaText}>{avatarAsText(assignee.avatar)} {assignee.name}</Text>}
                 </View>
               </View>
               <TouchableOpacity onPress={() => dispatch({ type: 'DELETE_TASK', payload: task.id })}>

@@ -56,4 +56,4 @@ export const SUBJECT_PRESETS: { id: string; label: string; group: string; subjec
 ]
 
 export const MAX_NAME_LENGTH = 10
-export const MAX_SUBJECT_LENGTH = 8
+export const MAX_SUBJECT_LENGTH = 20

@@ -1,4 +1,4 @@
-﻿{
+{
   "expo": {
     "name": "まなびチーム",
     "slug": "manabi-team",
@@ -30,7 +30,8 @@
       "output": "static"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      ["expo-image-picker", { "cameraPermission": false, "microphonePermission": false, "photosPermission": "家族のアイコンに使う写真を選ぶために、写真ライブラリを使います。選んだ写真は端末の中だけに保存されます。" }]
     ],
     "experiments": {
       "typedRoutes": false

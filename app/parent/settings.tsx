@@ -6,6 +6,7 @@ import { useApp } from '../../src/hooks/AppContext'
 import MemberForm from '../../src/components/MemberForm'
 import SubjectsSection from '../../src/components/SubjectsSection'
 import ConfirmModal from '../../src/components/ConfirmModal'
+import Avatar from '../../src/components/Avatar'
 import VisibilitySwitches from '../../src/components/VisibilitySwitches'
 import { ALL_PRIVATE } from '../../src/utils/defaults'
 import { makeId } from '../../src/utils/helpers'
@@ -54,7 +55,7 @@ export default function ParentSettings() {
           />
         ) : (
           <View key={u.id} style={styles.row}>
-            <Text style={styles.avatar}>{u.avatar}</Text>
+            <Avatar avatar={u.avatar} size={36} />
             <View style={styles.rowInfo}>
               <Text style={styles.rowName}>{u.name}</Text>
               <Text style={styles.rowSub}>{u.role === 'parent' ? '保護者' : 'こども'}</Text>

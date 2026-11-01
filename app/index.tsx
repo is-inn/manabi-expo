@@ -4,6 +4,7 @@ import { useRouter, Redirect } from 'expo-router'
 import { useState } from 'react'
 import { useApp } from '../src/hooks/AppContext'
 import { User } from '../src/types'
+import Avatar from '../src/components/Avatar'
 
 /** 子どもが暗算では通りにくい 2桁×1桁 の問題を生成する（Families Policy 準拠のペアレンタルゲート） */
 function makeChallenge() {
@@ -66,7 +67,7 @@ export default function LoginScreen() {
       <View style={styles.grid}>
         {state.users.map(user => (
           <TouchableOpacity key={user.id} style={styles.card} onPress={() => handleSelect(user)}>
-            <Text style={styles.avatar}>{user.avatar}</Text>
+            <Avatar avatar={user.avatar} size={50} />
             <Text style={styles.name}>{user.name}</Text>
             <View style={[styles.badge, { backgroundColor: user.role === 'parent' ? '#e8f3fe' : '#e8fef3' }]}>
               <Text style={[styles.badgeText, { color: user.role === 'parent' ? '#4f9cf9' : '#4fcf8e' }]}>

@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { useApp } from '../src/hooks/AppContext'
 import MemberForm from '../src/components/MemberForm'
+import Avatar from '../src/components/Avatar'
 import { makeId } from '../src/utils/helpers'
 
 /** 初回起動：ご家族を登録する（保護者1人以上・こども1人以上で「はじめる」が押せる） */
@@ -32,7 +33,7 @@ export default function SetupScreen() {
             <Text style={styles.listLabel}>登録したご家族</Text>
             {state.users.map(u => (
               <View key={u.id} style={styles.memberRow}>
-                <Text style={styles.memberAvatar}>{u.avatar}</Text>
+                <Avatar avatar={u.avatar} size={32} />
                 <Text style={styles.memberName}>{u.name}</Text>
                 <View style={[styles.badge, { backgroundColor: u.role === 'parent' ? '#e8f3fe' : '#e8fef3' }]}>
                   <Text style={[styles.badgeText, { color: u.role === 'parent' ? '#4f9cf9' : '#4fcf8e' }]}>

@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'expo-router'
 import { useApp } from '../../src/hooks/AppContext'
 import { formatDuration, getTotalStudyTime, getStreak } from '../../src/utils/helpers'
+import { avatarAsText } from '../../src/utils/avatar'
 
 export default function ChildHome() {
   const { state, dispatch } = useApp()
@@ -29,7 +30,7 @@ export default function ChildHome() {
         {/* Header */}
         <View style={styles.heroCard}>
           <Text style={styles.heroSub}>こんにちは！</Text>
-          <Text style={styles.heroName}>{user.avatar} {user.name}さん</Text>
+          <Text style={styles.heroName}>{avatarAsText(user.avatar)} {user.name}さん</Text>
           <Text style={styles.heroStreak}>{streak > 0 ? `🔥 ${streak}日連続がんばってるよ！` : 'さあ、今日も勉強しよう！'}</Text>
           <TouchableOpacity onPress={() => dispatch({ type: 'LOGOUT' })} style={styles.logoutBtn}>
             <Text style={styles.logoutText}>ログアウト</Text>

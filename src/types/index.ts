@@ -69,6 +69,10 @@ export interface TimerState {
   sessionUserId: string
   /** 開始した時刻（ms）。画面を閉じていても経過時間がずれないよう、時刻から計算する */
   startedAt: number
+  /** 一時停止した時刻（ms）。動いている間は 0 */
+  pausedAt: number
+  /** これまでに一時停止していた合計（ms）。経過時間から引く */
+  pausedMs: number
   /** カウントダウンの目標秒数。0ならストップウォッチ */
   targetSeconds: number
 }
@@ -110,6 +114,8 @@ export type AppAction =
   | { type: 'DELETE_TASK'; payload: string }
   | { type: 'START_TIMER'; payload: { subject: string; userId: string; now: number; targetSeconds?: number } }
   | { type: 'TICK_TIMER'; payload: { now: number } }
+  | { type: 'PAUSE_TIMER'; payload: { now: number } }
+  | { type: 'RESUME_TIMER'; payload: { now: number } }
   | { type: 'STOP_TIMER' }
   | { type: 'RESET_TIMER' }
   | { type: 'SAVE_SESSION'; payload: StudySession }

@@ -11,7 +11,7 @@ const PREV_STORAGE_KEY = 'manabi:appState:v2'
 // v1 はデモ家族入りの旧形式。読み込まずに掃除だけする
 const LEGACY_STORAGE_KEY = 'manabi:appState:v1'
 
-const IDLE_TIMER: TimerState = { isRunning: false, elapsed: 0, subject: '', sessionUserId: '', startedAt: 0, targetSeconds: 0 }
+const IDLE_TIMER: TimerState = { isRunning: false, elapsed: 0, subject: '', sessionUserId: '', startedAt: 0, pausedAt: 0, pausedMs: 0, targetSeconds: 0 }
 
 const initialState: AppState = {
   mode: null,
@@ -108,15 +108,29 @@ function reducer(state: AppState, action: AppAction): AppState {
         subject: action.payload.subject,
         sessionUserId: action.payload.userId,
         startedAt: action.payload.now,
+        pausedAt: 0,
+        pausedMs: 0,
         targetSeconds: action.payload.targetSeconds ?? 0,
       },
     }
-    // 1秒ずつ足すのではなく開始時刻との差で数える（画面を閉じていた間もずれない）
-    case 'TICK_TIMER': return {
-      ...state,
-      timerState: { ...state.timerState, elapsed: Math.max(0, Math.floor((action.payload.now - state.timerState.startedAt) / 1000)) },
+    // 1秒ずつ足すのではなく開始時刻との差で数える（画面を閉じていた間もずれない）。一時停止中の時間は引く
+    case 'TICK_TIMER': {
+      const t = state.timerState
+      if (t.pausedAt > 0) return state
+      return { ...state, timerState: { ...t, elapsed: Math.max(0, Math.floor((action.payload.now - t.startedAt - t.pausedMs) / 1000)) } }
     }
-    case 'STOP_TIMER': return { ...state, timerState: { ...state.timerState, isRunning: false } }
+    case 'PAUSE_TIMER': {
+      const t = state.timerState
+      if (!t.isRunning || t.pausedAt > 0) return state
+      const now = action.payload.now
+      return { ...state, timerState: { ...t, pausedAt: now, elapsed: Math.max(0, Math.floor((now - t.startedAt - t.pausedMs) / 1000)) } }
+    }
+    case 'RESUME_TIMER': {
+      const t = state.timerState
+      if (!t.isRunning || t.pausedAt === 0) return state
+      return { ...state, timerState: { ...t, pausedAt: 0, pausedMs: t.pausedMs + Math.max(0, action.payload.now - t.pausedAt) } }
+    }
+    case 'STOP_TIMER': return { ...state, timerState: { ...state.timerState, isRunning: false, pausedAt: 0 } }
     case 'RESET_TIMER': return { ...state, timerState: IDLE_TIMER }
     case 'SAVE_SESSION': return { ...state, studySessions: [...state.studySessions, action.payload], timerState: IDLE_TIMER }
     case 'DELETE_SESSION': return { ...state, studySessions: state.studySessions.filter(s => s.id !== action.payload) }
