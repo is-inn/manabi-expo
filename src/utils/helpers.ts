@@ -58,7 +58,43 @@ export const getGoalStreak = (sessions: { date: string; duration: number }[], go
   return streak
 }
 
-export const getStreak = (sessions: { date: string }[]): number => {
+/** 端末内の持ち主ID（UUID v4 形式。通信には使わない） */
+export const generateAccountId = (): string =>
+  'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.floor(Math.random() * 16)
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16)
+  })
+
+/** 今週の月曜日（YYYY-MM-DD）。週は月曜はじまり */
+export const getWeekStartStr = (now: Date = new Date()): string => {
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7))
+  return toDateStr(d)
+}
+
+/** 今週（月曜〜今日）の記録だけ。日付は YYYY-MM-DD なので文字列比較でよい */
+export const getWeekSessions = <T extends { date: string }>(sessions: T[]): T[] => {
+  const start = getWeekStartStr()
+  return sessions.filter(s => s.date >= start)
+}
+
+/** 科目ごとの合計秒数（多い順） */
+export const getSubjectTotals = (sessions: { subject: string; duration: number }[]): { subject: string; seconds: number }[] => {
+  const totals: Record<string, number> = {}
+  sessions.forEach(s => { totals[s.subject] = (totals[s.subject] ?? 0) + s.duration })
+  return Object.entries(totals).map(([subject, seconds]) => ({ subject, seconds })).sort((a, b) => b.seconds - a.seconds)
+}
+
+/** 今日から期限までの日数（今日=0、過ぎていれば負） */
+export const getDaysUntil = (dateStr: string): number => {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const today = new Date()
+  const a = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()
+  const b = new Date(y, m - 1, d).getTime()
+  return Math.round((b - a) / 86400000)
+}
+
+export const getStreak =(sessions: { date: string }[]): number => {
   if (sessions.length === 0) return 0
   const dates = [...new Set(sessions.map(s => s.date))].sort().reverse()
   let streak = 0

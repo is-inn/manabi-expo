@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native'
-import { Role } from '../types'
-import { AVATARS, MAX_NAME_LENGTH } from '../utils/defaults'
+import { ParentVisibility, Role } from '../types'
+import { ALL_PRIVATE, AVATARS, MAX_NAME_LENGTH } from '../utils/defaults'
+import VisibilitySwitches from './VisibilitySwitches'
 
 export interface MemberValue {
   name: string
   avatar: string
   role: Role
+  /** 新しく保護者を登録するときだけ入る（子どもに見せる項目） */
+  visibility?: ParentVisibility
 }
 
 interface Props {
@@ -25,12 +28,14 @@ export default function MemberForm({ initial, defaultRole = 'child', lockRole, s
   const [name, setName] = useState(initial?.name ?? '')
   const [avatar, setAvatar] = useState(initial?.avatar ?? AVATARS[defaultRole === 'parent' ? 0 : 4])
   const [role, setRole] = useState<Role>(initial?.role ?? defaultRole)
+  const [visibility, setVisibility] = useState<ParentVisibility>(ALL_PRIVATE)
   const trimmed = name.trim()
+  const askVisibility = !initial && role === 'parent'
 
   const submit = () => {
     if (!trimmed) return
-    onSubmit({ name: trimmed, avatar, role })
-    if (!initial) setName('')
+    onSubmit({ name: trimmed, avatar, role, ...(askVisibility ? { visibility } : {}) })
+    if (!initial) { setName(''); setVisibility(ALL_PRIVATE) }
   }
 
   return (
@@ -66,6 +71,13 @@ export default function MemberForm({ initial, defaultRole = 'child', lockRole, s
           </TouchableOpacity>
         ))}
       </View>
+
+      {askVisibility && (
+        <>
+          <Text style={styles.label}>子どもに見せる学習状況（あとで変えられます）</Text>
+          <VisibilitySwitches value={visibility} onChange={setVisibility} />
+        </>
+      )}
 
       <View style={styles.btnRow}>
         {onCancel && (

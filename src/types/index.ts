@@ -42,6 +42,26 @@ export interface SoloProfile {
   goalMinutes: number
 }
 
+/** 保護者の学習目標（週あたり） */
+export interface GoalSetting {
+  userId: string
+  title?: string
+  /** 1週間の目標（分） */
+  weeklyMinutes: number
+  /** 期限（YYYY-MM-DD） */
+  deadline?: string
+}
+
+/** 保護者が子どもに見せる項目（true = 見せる）。未設定の保護者はすべて非公開 */
+export interface ParentVisibility {
+  total: boolean
+  week: boolean
+  goal: boolean
+  subjects: boolean
+  tasks: boolean
+  taskTime: boolean
+}
+
 export interface TimerState {
   isRunning: boolean
   elapsed: number
@@ -56,6 +76,10 @@ export interface TimerState {
 export interface AppState {
   /** 最初に選んだ使い方。まだ選んでいなければ null */
   mode: Mode | null
+  /** この端末の持ち主ID。将来の認証連携で「引き継ぎ元」になる（通信はしない） */
+  accountId: string
+  goals: GoalSetting[]
+  visibility: Record<string, ParentVisibility>
   currentUser: User | null
   users: User[]
   solo: SoloProfile
@@ -76,6 +100,11 @@ export type AppAction =
   | { type: 'ADD_SUBJECT'; payload: Subject }
   | { type: 'UPDATE_SUBJECT'; payload: Subject }
   | { type: 'DELETE_SUBJECT'; payload: string }
+  | { type: 'ADD_SUBJECTS'; payload: Subject[] }
+  | { type: 'SET_ACCOUNT_ID'; payload: string }
+  | { type: 'SET_GOAL'; payload: GoalSetting }
+  | { type: 'DELETE_GOAL'; payload: string }
+  | { type: 'SET_VISIBILITY'; payload: { userId: string; visibility: ParentVisibility } }
   | { type: 'ADD_TASK'; payload: Task }
   | { type: 'TOGGLE_TASK'; payload: string }
   | { type: 'DELETE_TASK'; payload: string }

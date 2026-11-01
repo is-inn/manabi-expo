@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView, Modal } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useApp } from '../hooks/AppContext'
 import GoalStepper from './GoalStepper'
 import ConfirmModal from './ConfirmModal'
@@ -18,10 +18,12 @@ interface Props {
   title?: string
   /** 直近7日間の記録を下に表示する */
   showHistory?: boolean
+  /** タイトルの下に差し込む表示（保護者の目標カードなど） */
+  header?: ReactNode
 }
 
 /** ストップウォッチ／タイマーと、終了時の「がんばったこと」メモ。ひとりモードと保護者の「じぶんの勉強」で共通 */
-export default function StudyTimer({ userId, title = '⏱️ 勉強をけいそく', showHistory = false }: Props) {
+export default function StudyTimer({ userId, title = '⏱️ 勉強をけいそく', showHistory = false, header }: Props) {
   const { state, dispatch } = useApp()
   const { timerState } = state
   const [kind, setKind] = useState<Kind>('stopwatch')
@@ -112,6 +114,7 @@ export default function StudyTimer({ userId, title = '⏱️ 勉強をけいそ�
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={styles.pageTitle}>{title}</Text>
+        {header}
 
         {otherBusy && idle && (
           <View style={styles.notice}>

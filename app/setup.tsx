@@ -52,7 +52,11 @@ export default function SetupScreen() {
           key={parents.length > 0 ? 'child' : 'parent'}
           defaultRole={parents.length > 0 ? 'child' : 'parent'}
           submitLabel="＋ 追加する"
-          onSubmit={v => dispatch({ type: 'ADD_USER', payload: { id: makeId('u'), name: v.name, avatar: v.avatar, role: v.role } })}
+          onSubmit={v => {
+            const id = makeId('u')
+            dispatch({ type: 'ADD_USER', payload: { id, name: v.name, avatar: v.avatar, role: v.role } })
+            if (v.role === 'parent' && v.visibility) dispatch({ type: 'SET_VISIBILITY', payload: { userId: id, visibility: v.visibility } })
+          }}
         />
 
         <TouchableOpacity

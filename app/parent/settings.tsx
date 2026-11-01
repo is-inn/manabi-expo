@@ -6,6 +6,8 @@ import { useApp } from '../../src/hooks/AppContext'
 import MemberForm from '../../src/components/MemberForm'
 import SubjectsSection from '../../src/components/SubjectsSection'
 import ConfirmModal from '../../src/components/ConfirmModal'
+import VisibilitySwitches from '../../src/components/VisibilitySwitches'
+import { ALL_PRIVATE } from '../../src/utils/defaults'
 import { makeId } from '../../src/utils/helpers'
 import { User } from '../../src/types'
 
@@ -33,7 +35,11 @@ export default function ParentSettings() {
           <MemberForm
             defaultRole="child"
             submitLabel="追加する"
-            onSubmit={v => dispatch({ type: 'ADD_USER', payload: { id: makeId('u'), name: v.name, avatar: v.avatar, role: v.role } })}
+            onSubmit={v => {
+              const id = makeId('u')
+              dispatch({ type: 'ADD_USER', payload: { id, name: v.name, avatar: v.avatar, role: v.role } })
+              if (v.role === 'parent' && v.visibility) dispatch({ type: 'SET_VISIBILITY', payload: { userId: id, visibility: v.visibility } })
+            }}
           />
         )}
 
@@ -64,6 +70,20 @@ export default function ParentSettings() {
             )}
           </View>
         ))}
+
+        {/* ---- 子どもに見せる学習状況（ログイン中の保護者の分） ---- */}
+        {state.currentUser?.role === 'parent' && (
+          <View style={[styles.modeCard, { marginTop: 12 }]}>
+            <Text style={styles.sectionTitle}>子どもに見せる学習状況</Text>
+            <Text style={styles.modeDesc}>
+              オンにした項目だけ、子どもの「おうちの人」タブに表示されます。記録はオフでも保存されます。
+            </Text>
+            <VisibilitySwitches
+              value={state.visibility[state.currentUser.id] ?? ALL_PRIVATE}
+              onChange={v => dispatch({ type: 'SET_VISIBILITY', payload: { userId: state.currentUser!.id, visibility: v } })}
+            />
+          </View>
+        )}
 
         {/* ---- 科目 ---- */}
         <View style={{ marginTop: 12 }}>

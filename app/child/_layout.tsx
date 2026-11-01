@@ -13,6 +13,7 @@ export default function ChildLayout() {
       <Tabs.Screen name="home" options={{ title: 'ホーム', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>🏠</Text> }} />
       <Tabs.Screen name="timer" options={{ title: 'タイマー', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>⏱️</Text> }} />
       <Tabs.Screen name="tasks" options={{ title: 'タスク', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>📝</Text> }} />
+      <Tabs.Screen name="family" options={{ title: 'おうちの人', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>👪</Text> }} />
     </Tabs>
   )
 }
