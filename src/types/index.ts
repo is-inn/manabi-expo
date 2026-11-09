@@ -77,6 +77,14 @@ export interface TimerState {
   targetSeconds: number
 }
 
+/** 勉強のリマインド通知（この端末だけ。days は日曜=0〜土曜=6） */
+export interface ReminderSetting {
+  enabled: boolean
+  hour: number
+  minute: number
+  days: boolean[]
+}
+
 export interface AppState {
   /** 最初に選んだ使い方。まだ選んでいなければ null */
   mode: Mode | null
@@ -90,6 +98,7 @@ export interface AppState {
   subjects: Subject[]
   tasks: Task[]
   studySessions: StudySession[]
+  reminder: ReminderSetting
   timerState: TimerState
 }
 
@@ -107,6 +116,7 @@ export type AppAction =
   | { type: 'DELETE_SUBJECT'; payload: string }
   | { type: 'ADD_SUBJECTS'; payload: Subject[] }
   | { type: 'SET_ACCOUNT_ID'; payload: string }
+  | { type: 'SET_REMINDER'; payload: ReminderSetting }
   | { type: 'SET_GOAL'; payload: GoalSetting }
   | { type: 'DELETE_GOAL'; payload: string }
   | { type: 'SET_VISIBILITY'; payload: { userId: string; visibility: ParentVisibility } }

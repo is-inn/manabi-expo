@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useApp } from '../../src/hooks/AppContext'
 import Avatar from '../../src/components/Avatar'
+import WeeklyReview from '../../src/components/WeeklyReview'
 import { formatDuration, getTotalStudyTime, getStreak, getSubjectColor, toDateStr } from '../../src/utils/helpers'
 
 export default function ParentProgress() {
@@ -52,6 +53,8 @@ export default function ParentProgress() {
                   <Text style={[styles.statValue, { color: '#f9a74f' }]}>🔥 {streak}日</Text>
                 </View>
               </View>
+
+              <WeeklyReview sessions={sessions} />
 
               {/* Weekly chart */}
               <Text style={styles.sectionLabel}>直近7日間</Text>

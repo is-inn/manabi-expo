@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router'
 import { useApp } from '../../src/hooks/AppContext'
 import MemberForm from '../../src/components/MemberForm'
 import SubjectsSection from '../../src/components/SubjectsSection'
+import ReminderSettings from '../../src/components/ReminderSettings'
 import ConfirmModal from '../../src/components/ConfirmModal'
 import Avatar from '../../src/components/Avatar'
 import VisibilitySwitches from '../../src/components/VisibilitySwitches'
@@ -85,6 +86,9 @@ export default function ParentSettings() {
             />
           </View>
         )}
+
+        {/* ---- リマインド ---- */}
+        <ReminderSettings />
 
         {/* ---- 科目 ---- */}
         <View style={{ marginTop: 12 }}>

@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router'
 import { useApp } from '../../src/hooks/AppContext'
 import GoalStepper from '../../src/components/GoalStepper'
 import SubjectsSection from '../../src/components/SubjectsSection'
+import ReminderSettings from '../../src/components/ReminderSettings'
 import { MAX_NAME_LENGTH } from '../../src/utils/defaults'
 
 export default function SoloSettings() {
@@ -41,6 +42,8 @@ export default function SoloSettings() {
         </View>
 
         <SubjectsSection />
+
+        <ReminderSettings />
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>アカウント（あとから登録できます）</Text>

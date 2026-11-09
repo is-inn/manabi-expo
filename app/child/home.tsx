@@ -3,7 +3,10 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useEffect } from 'react'
 import { useRouter } from 'expo-router'
 import { useApp } from '../../src/hooks/AppContext'
-import { formatDuration, getTotalStudyTime, getStreak } from '../../src/utils/helpers'
+import { formatDuration, getTotalStudyTime, getStreak, getBestStreak } from '../../src/utils/helpers'
+import StreakBadges from '../../src/components/StreakBadges'
+import WeeklyReview from '../../src/components/WeeklyReview'
+import ReminderSettings from '../../src/components/ReminderSettings'
 import { avatarAsText } from '../../src/utils/avatar'
 
 export default function ChildHome() {
@@ -62,6 +65,10 @@ export default function ChildHome() {
             <Text style={styles.actionSub}>{pending.length}個のこってるよ</Text>
           </TouchableOpacity>
         </View>
+
+        <StreakBadges streak={streak} best={getBestStreak(mySessions)} />
+        <WeeklyReview sessions={mySessions} />
+        <ReminderSettings />
       </ScrollView>
     </SafeAreaView>
   )

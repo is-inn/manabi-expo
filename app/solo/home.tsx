@@ -3,7 +3,9 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { useApp } from '../../src/hooks/AppContext'
 import { SOLO_USER_ID } from '../../src/utils/defaults'
-import { formatDuration, getDailyTotals, getGoalStreak, getTodayStr, getTotalStudyTime, getSubjectColor, toDateStr } from '../../src/utils/helpers'
+import { formatDuration, getDailyTotals, getGoalStreak, getBestStreak, getTodayStr, getTotalStudyTime, getSubjectColor, toDateStr } from '../../src/utils/helpers'
+import StreakBadges from '../../src/components/StreakBadges'
+import WeeklyReview from '../../src/components/WeeklyReview'
 
 export default function SoloHome() {
   const { state } = useApp()
@@ -65,6 +67,9 @@ export default function SoloHome() {
             <Text style={styles.statLabel}>合計の勉強時間</Text>
           </View>
         </View>
+
+        <StreakBadges streak={streak} best={getBestStreak(sessions, goalSec)} />
+        <WeeklyReview sessions={sessions} />
 
         <View style={styles.card}>
           <Text style={styles.cardLabel}>直近7日間</Text>

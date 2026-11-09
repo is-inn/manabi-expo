@@ -94,6 +94,68 @@ export const getDaysUntil = (dateStr: string): number => {
   return Math.round((b - a) / 86400000)
 }
 
+/** これまでで一番長かった連続日数（needSeconds 以上勉強した日を数える。0 なら1秒でも勉強した日） */
+export const getBestStreak = (sessions: { date: string; duration: number }[], needSeconds = 1): number => {
+  const totals = getDailyTotals(sessions)
+  const days = Object.keys(totals).filter(d => totals[d] >= Math.max(needSeconds, 1)).sort()
+  let best = 0
+  let run = 0
+  let prev = ''
+  for (const day of days) {
+    if (prev) {
+      const [y, m, d] = prev.split('-').map(Number)
+      const next = new Date(y, m - 1, d)
+      next.setDate(next.getDate() + 1)
+      run = toDateStr(next) === day ? run + 1 : 1
+    } else run = 1
+    best = Math.max(best, run)
+    prev = day
+  }
+  return best
+}
+
+/** 連続日数のバッジ */
+export const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100]
+
+export interface WeekReview {
+  weekStart: string
+  totalSeconds: number
+  prevSeconds: number
+  daysStudied: number
+  topSubject: string | null
+  bestDay: { label: string; seconds: number } | null
+}
+
+/** 先週（月曜〜日曜）のふりかえり。比べるのはその前の週 */
+export const getLastWeekReview = (sessions: { date: string; duration: number; subject: string }[], now: Date = new Date()): WeekReview => {
+  const thisMonday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  thisMonday.setDate(thisMonday.getDate() - ((thisMonday.getDay() + 6) % 7))
+  const lastMonday = new Date(thisMonday)
+  lastMonday.setDate(lastMonday.getDate() - 7)
+  const prevMonday = new Date(thisMonday)
+  prevMonday.setDate(prevMonday.getDate() - 14)
+  const [a, b, c] = [toDateStr(prevMonday), toDateStr(lastMonday), toDateStr(thisMonday)]
+  const last = sessions.filter(s => s.date >= b && s.date < c)
+  const prev = sessions.filter(s => s.date >= a && s.date < b)
+  const totals = getDailyTotals(last)
+  const labels = ['日', '月', '火', '水', '木', '金', '土']
+  let bestDay: WeekReview['bestDay'] = null
+  for (const [date, seconds] of Object.entries(totals)) {
+    if (!bestDay || seconds > bestDay.seconds) {
+      const [y, m, d] = date.split('-').map(Number)
+      bestDay = { label: labels[new Date(y, m - 1, d).getDay()], seconds }
+    }
+  }
+  return {
+    weekStart: b,
+    totalSeconds: getTotalStudyTime(last),
+    prevSeconds: getTotalStudyTime(prev),
+    daysStudied: Object.keys(totals).length,
+    topSubject: getSubjectTotals(last)[0]?.subject ?? null,
+    bestDay,
+  }
+}
+
 export const getStreak =(sessions: { date: string }[]): number => {
   if (sessions.length === 0) return 0
   const dates = [...new Set(sessions.map(s => s.date))].sort().reverse()

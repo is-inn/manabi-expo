@@ -1,4 +1,7 @@
-import { ParentVisibility, Subject } from '../types'
+import { ParentVisibility, ReminderSetting, Subject } from '../types'
+
+/** リマインド通知の初期値（オフ。オンにすると毎日19:00） */
+export const DEFAULT_REMINDER: ReminderSetting = { enabled: false, hour: 19, minute: 0, days: [true, true, true, true, true, true, true] }
 
 /** 初回起動時の科目（あとから自由に追加・編集・削除できる） */
 export const DEFAULT_SUBJECTS: Subject[] = [

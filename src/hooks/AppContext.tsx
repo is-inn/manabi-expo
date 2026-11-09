@@ -2,7 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect, useState } fro
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { View, ActivityIndicator, StyleSheet } from 'react-native'
 import { AppState, AppAction, TimerState, ParentVisibility } from '../types'
-import { DEFAULT_SUBJECTS, DEFAULT_GOAL_MINUTES, MAX_GOAL_MINUTES, MAX_WEEKLY_GOAL_MINUTES, MAX_GOAL_TITLE_LENGTH } from '../utils/defaults'
+import { DEFAULT_SUBJECTS, DEFAULT_REMINDER, DEFAULT_GOAL_MINUTES, MAX_GOAL_MINUTES, MAX_WEEKLY_GOAL_MINUTES, MAX_GOAL_TITLE_LENGTH } from '../utils/defaults'
 import { generateAccountId } from '../utils/helpers'
 
 const STORAGE_KEY = 'manabi:appState:v3'
@@ -24,6 +24,7 @@ const initialState: AppState = {
   subjects: DEFAULT_SUBJECTS,
   tasks: [],
   studySessions: [],
+  reminder: DEFAULT_REMINDER,
   timerState: IDLE_TIMER,
 }
 
@@ -93,6 +94,7 @@ function reducer(state: AppState, action: AppAction): AppState {
       return added.length === 0 ? state : { ...state, subjects: [...state.subjects, ...added] }
     }
     case 'SET_ACCOUNT_ID': return { ...state, accountId: action.payload }
+    case 'SET_REMINDER': return { ...state, reminder: action.payload }
     case 'SET_GOAL': {
       const rest = state.goals.filter(g => g.userId !== action.payload.userId)
       return { ...state, goals: [...rest, action.payload] }
@@ -144,7 +146,7 @@ function reducer(state: AppState, action: AppAction): AppState {
 const AppContext = createContext<{ state: AppState; dispatch: React.Dispatch<AppAction> } | null>(null)
 
 /** 永続化する部分だけを抜き出す（timerState は揮発でよい） */
-type Persisted = Pick<AppState, 'mode' | 'accountId' | 'goals' | 'visibility' | 'currentUser' | 'users' | 'solo' | 'subjects' | 'tasks' | 'studySessions'>
+type Persisted = Pick<AppState, 'mode' | 'accountId' | 'goals' | 'visibility' | 'currentUser' | 'users' | 'solo' | 'subjects' | 'tasks' | 'studySessions' | 'reminder'>
 
 /** 保存・バックアップする部分だけを取り出す */
 export const toPersisted = (state: AppState): Persisted => ({
@@ -158,6 +160,7 @@ export const toPersisted = (state: AppState): Persisted => ({
   subjects: state.subjects,
   tasks: state.tasks,
   studySessions: state.studySessions,
+  reminder: state.reminder,
 })
 
 /** 保存データの形を確かめて、使えるものだけ取り出す（壊れていても落とさない） */
@@ -174,6 +177,15 @@ export function sanitize(saved: Partial<Persisted>): Partial<Persisted> {
     out.solo = { name: s.name, goalMinutes: Math.min(Math.max(Math.round(s.goalMinutes), 1), MAX_GOAL_MINUTES) }
   }
   if (typeof saved.accountId === 'string' && saved.accountId.length > 0) out.accountId = saved.accountId
+  const r = saved.reminder
+  if (r && typeof r === 'object' && Number.isFinite(r.hour) && Number.isFinite(r.minute) && Array.isArray(r.days) && r.days.length === 7) {
+    out.reminder = {
+      enabled: r.enabled === true,
+      hour: Math.min(Math.max(Math.round(r.hour), 0), 23),
+      minute: Math.min(Math.max(Math.round(r.minute), 0), 59),
+      days: r.days.map(d => d === true),
+    }
+  }
   const parentIds = new Set((out.users ?? []).filter(u => u.role === 'parent').map(u => u.id))
   if (Array.isArray(saved.goals)) {
     out.goals = saved.goals.filter(g =>
@@ -245,12 +257,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       subjects: state.subjects,
       tasks: state.tasks,
       studySessions: state.studySessions,
+      reminder: state.reminder,
     }
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(persisted))
       // v3 を書けたことを確かめてから v2 を消す
       .then(() => AsyncStorage.removeItem(PREV_STORAGE_KEY).catch(() => {}))
       .catch(e => console.warn('[AppContext] persist failed', e))
-  }, [hydrated, state.mode, state.accountId, state.goals, state.visibility, state.currentUser, state.users, state.solo, state.subjects, state.tasks, state.studySessions])
+  }, [hydrated, state.mode, state.accountId, state.goals, state.visibility, state.currentUser, state.users, state.solo, state.subjects, state.tasks, state.studySessions, state.reminder])
 
   // 初回起動（または v2 からの移行）で持ち主IDを作る。端末内だけで使い、送信しない
   useEffect(() => {

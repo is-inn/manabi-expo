@@ -3,7 +3,7 @@
     "name": "まなびチーム",
     "slug": "manabi-team",
     "scheme": "manabiteam",
-    "version": "1.1.1",
+    "version": "1.2.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "icon": "./assets/icon.png",
@@ -32,6 +32,7 @@
     "plugins": [
       "expo-router",
       "expo-live-activity",
+      "expo-notifications",
       ["expo-image-picker", { "cameraPermission": false, "microphonePermission": false, "photosPermission": "家族のアイコンに使う写真を選ぶために、写真ライブラリを使います。選んだ写真は端末の中だけに保存されます。" }]
     ],
     "experiments": {
