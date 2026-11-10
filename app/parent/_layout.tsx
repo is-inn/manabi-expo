@@ -1,8 +1,11 @@
 import { Tabs } from 'expo-router'
 import { Text } from 'react-native'
+import Tutorial from '../../src/components/Tutorial'
 
 export default function ParentLayout() {
   return (
+    <>
+    <Tutorial role="parent" />
     <Tabs screenOptions={{
       headerShown: false,
       tabBarStyle: { backgroundColor: 'white', borderTopColor: '#e2e8f0' },
@@ -16,5 +19,6 @@ export default function ParentLayout() {
       <Tabs.Screen name="progress" options={{ title: '進捗', tabBarIcon: () => <Text style={{ fontSize: 20 }}>📊</Text> }} />
       <Tabs.Screen name="settings" options={{ title: '設定', tabBarIcon: () => <Text style={{ fontSize: 20 }}>⚙️</Text> }} />
     </Tabs>
+    </>
   )
 }

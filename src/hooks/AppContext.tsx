@@ -25,6 +25,7 @@ const initialState: AppState = {
   tasks: [],
   studySessions: [],
   reminder: DEFAULT_REMINDER,
+  tutorialSeen: [],
   timerState: IDLE_TIMER,
 }
 
@@ -95,6 +96,11 @@ function reducer(state: AppState, action: AppAction): AppState {
     }
     case 'SET_ACCOUNT_ID': return { ...state, accountId: action.payload }
     case 'SET_REMINDER': return { ...state, reminder: action.payload }
+    case 'SET_TUTORIAL_SEEN': {
+      const { userId, seen } = action.payload
+      const rest = state.tutorialSeen.filter(id => id !== userId)
+      return { ...state, tutorialSeen: seen ? [...rest, userId] : rest }
+    }
     case 'SET_GOAL': {
       const rest = state.goals.filter(g => g.userId !== action.payload.userId)
       return { ...state, goals: [...rest, action.payload] }
@@ -146,7 +152,7 @@ function reducer(state: AppState, action: AppAction): AppState {
 const AppContext = createContext<{ state: AppState; dispatch: React.Dispatch<AppAction> } | null>(null)
 
 /** 永続化する部分だけを抜き出す（timerState は揮発でよい） */
-type Persisted = Pick<AppState, 'mode' | 'accountId' | 'goals' | 'visibility' | 'currentUser' | 'users' | 'solo' | 'subjects' | 'tasks' | 'studySessions' | 'reminder'>
+type Persisted = Pick<AppState, 'mode' | 'accountId' | 'goals' | 'visibility' | 'currentUser' | 'users' | 'solo' | 'subjects' | 'tasks' | 'studySessions' | 'reminder' | 'tutorialSeen'>
 
 /** 保存・バックアップする部分だけを取り出す */
 export const toPersisted = (state: AppState): Persisted => ({
@@ -161,6 +167,7 @@ export const toPersisted = (state: AppState): Persisted => ({
   tasks: state.tasks,
   studySessions: state.studySessions,
   reminder: state.reminder,
+  tutorialSeen: state.tutorialSeen,
 })
 
 /** 保存データの形を確かめて、使えるものだけ取り出す（壊れていても落とさない） */
@@ -177,6 +184,7 @@ export function sanitize(saved: Partial<Persisted>): Partial<Persisted> {
     out.solo = { name: s.name, goalMinutes: Math.min(Math.max(Math.round(s.goalMinutes), 1), MAX_GOAL_MINUTES) }
   }
   if (typeof saved.accountId === 'string' && saved.accountId.length > 0) out.accountId = saved.accountId
+  if (Array.isArray(saved.tutorialSeen)) out.tutorialSeen = saved.tutorialSeen.filter(id => typeof id === 'string')
   const r = saved.reminder
   if (r && typeof r === 'object' && Number.isFinite(r.hour) && Number.isFinite(r.minute) && Array.isArray(r.days) && r.days.length === 7) {
     out.reminder = {
@@ -258,12 +266,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       tasks: state.tasks,
       studySessions: state.studySessions,
       reminder: state.reminder,
+      tutorialSeen: state.tutorialSeen,
     }
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(persisted))
       // v3 を書けたことを確かめてから v2 を消す
       .then(() => AsyncStorage.removeItem(PREV_STORAGE_KEY).catch(() => {}))
       .catch(e => console.warn('[AppContext] persist failed', e))
-  }, [hydrated, state.mode, state.accountId, state.goals, state.visibility, state.currentUser, state.users, state.solo, state.subjects, state.tasks, state.studySessions, state.reminder])
+  }, [hydrated, state.mode, state.accountId, state.goals, state.visibility, state.currentUser, state.users, state.solo, state.subjects, state.tasks, state.studySessions, state.reminder, state.tutorialSeen])
 
   // 初回起動（または v2 からの移行）で持ち主IDを作る。端末内だけで使い、送信しない
   useEffect(() => {

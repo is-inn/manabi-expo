@@ -69,6 +69,13 @@ export default function ChildHome() {
         <StreakBadges streak={streak} best={getBestStreak(mySessions)} />
         <WeeklyReview sessions={mySessions} />
         <ReminderSettings />
+
+        <TouchableOpacity
+          onPress={() => dispatch({ type: 'SET_TUTORIAL_SEEN', payload: { userId: user.id, seen: false } })}
+          style={styles.helpBtn}
+        >
+          <Text style={styles.helpText}>📖 つかいかたを見る</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   )
@@ -83,6 +90,8 @@ const styles = StyleSheet.create({
   heroStreak: { color: 'rgba(255,255,255,0.9)', fontSize: 13, marginTop: 8 },
   logoutBtn: { marginTop: 12, alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   logoutText: { color: 'white', fontSize: 12 },
+  helpBtn: { alignSelf: 'center', backgroundColor: '#e8fef3', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12 },
+  helpText: { color: '#1e8e5a', fontWeight: '700', fontSize: 14 },
   statsRow: { flexDirection: 'row', gap: 12 },
   statCard: { flex: 1, backgroundColor: 'white', borderRadius: 16, padding: 16, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
   statValue: { fontSize: 22, fontWeight: '700', color: '#4f9cf9' },

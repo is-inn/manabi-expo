@@ -105,6 +105,17 @@ export default function ParentSettings() {
             <Text style={styles.modeBtnText}>👤 会員登録・ログイン</Text>
           </TouchableOpacity>
         </View>
+        {/* ---- 使い方の説明 ---- */}
+        <View style={[styles.modeCard, { marginTop: 12 }]}>
+          <Text style={styles.sectionTitle}>使い方の説明</Text>
+          <Text style={styles.modeDesc}>はじめに見た説明を、もう一度見られます。</Text>
+          <TouchableOpacity
+            onPress={() => state.currentUser && dispatch({ type: 'SET_TUTORIAL_SEEN', payload: { userId: state.currentUser.id, seen: false } })}
+            style={styles.modeBtn}
+          >
+            <Text style={styles.modeBtnText}>📖 使い方を見る</Text>
+          </TouchableOpacity>
+        </View>
         {/* ---- 使い方 ---- */}
         <View style={[styles.modeCard, { marginTop: 12 }]}>
           <Text style={styles.sectionTitle}>使い方</Text>

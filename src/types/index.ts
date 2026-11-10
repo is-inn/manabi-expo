@@ -99,6 +99,8 @@ export interface AppState {
   tasks: Task[]
   studySessions: StudySession[]
   reminder: ReminderSetting
+  /** 使い方の説明（チュートリアル）を見終えた人のID */
+  tutorialSeen: string[]
   timerState: TimerState
 }
 
@@ -117,6 +119,7 @@ export type AppAction =
   | { type: 'ADD_SUBJECTS'; payload: Subject[] }
   | { type: 'SET_ACCOUNT_ID'; payload: string }
   | { type: 'SET_REMINDER'; payload: ReminderSetting }
+  | { type: 'SET_TUTORIAL_SEEN'; payload: { userId: string; seen: boolean } }
   | { type: 'SET_GOAL'; payload: GoalSetting }
   | { type: 'DELETE_GOAL'; payload: string }
   | { type: 'SET_VISIBILITY'; payload: { userId: string; visibility: ParentVisibility } }
