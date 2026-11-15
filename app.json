@@ -43,7 +43,7 @@
         {
           "cameraPermission": false,
           "microphonePermission": false,
-          "photosPermission": "家族のアイコンに使う写真を選ぶために、写真ライブラリを使います。選んだ写真は端末の中だけに保存されます。"
+          "photosPermission": "家族のアイコンに使う写真を選ぶために、写真ライブラリを使います。選んだ写真は小さくして端末に保存します（家族コードでつないだときは、家族のスマホと共有します）。"
         }
       ],
       [
