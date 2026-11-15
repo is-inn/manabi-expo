@@ -6,9 +6,26 @@ const CHANNEL_ID = 'reminder'
 /** 先の何日分まで予約するか（アプリを開くたびに予約し直す） */
 const DAYS_AHEAD = 14
 
+/** タイマー終了の通知のID（reminders 側では消さない） */
+const TIMER_NOTIFICATION_ID = 'timer-end'
+
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: false, shouldSetBadge: false }),
+  handleNotification: async n => {
+    // アプリを開いているときのタイマー終了は、アプリの中でバイブ・音を出すので、通知は出さない
+    const isTimer = (n.request.content.data as { kind?: string } | undefined)?.kind === 'timer'
+    return isTimer
+      ? { shouldShowBanner: false, shouldShowList: false, shouldPlaySound: false, shouldSetBadge: false }
+      : { shouldShowBanner: true, shouldShowList: true, shouldPlaySound: false, shouldSetBadge: false }
+  },
 })
+
+/** リマインドの予約だけを消す（タイマー終了の予約は残す） */
+async function cancelReminders() {
+  const all = await Notifications.getAllScheduledNotificationsAsync()
+  await Promise.all(all
+    .filter(n => n.identifier !== TIMER_NOTIFICATION_ID)
+    .map(n => Notifications.cancelScheduledNotificationAsync(n.identifier).catch(() => {})))
+}
 
 /** 通知の許可を確かめる。まだ聞いていなければ聞く。許可されたら true */
 export async function ensureReminderPermission(): Promise<boolean> {
@@ -28,7 +45,7 @@ export async function ensureReminderPermission(): Promise<boolean> {
  */
 export async function syncReminders(setting: ReminderSetting, studiedToday: boolean): Promise<void> {
   try {
-    await Notifications.cancelAllScheduledNotificationsAsync()
+    await cancelReminders()
     if (!setting.enabled) return
     if (!(await Notifications.getPermissionsAsync()).granted) return
     if (Platform.OS === 'android') {

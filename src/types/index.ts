@@ -85,6 +85,26 @@ export interface ReminderSetting {
   days: boolean[]
 }
 
+/** タイマーが終わったときの知らせ方（この端末だけ） */
+export interface TimerAlertSetting {
+  /** vibrate = バイブだけ / vibrateSound = バイブ＋やわらかい音 */
+  sound: 'vibrate' | 'vibrateSound'
+  /** 画面を閉じていても通知で知らせる */
+  notify: boolean
+}
+
+/** 家族コードでつないだ家族（スマホを分けて使う） */
+export interface FamilyLink {
+  id: string
+  /** 家族コード（8文字） */
+  code: string
+  /** つないだ直後の最初の同期: push = この端末の記録を送る / pull = 家族の記録を受け取る */
+  initial?: 'push' | 'pull'
+}
+
+/** 家族で共有する部分 */
+export type SharedData = Pick<AppState, 'users' | 'subjects' | 'tasks' | 'studySessions' | 'goals' | 'visibility'>
+
 export interface AppState {
   /** 最初に選んだ使い方。まだ選んでいなければ null */
   mode: Mode | null
@@ -101,6 +121,9 @@ export interface AppState {
   reminder: ReminderSetting
   /** 使い方の説明（チュートリアル）を見終えた人のID */
   tutorialSeen: string[]
+  timerAlert: TimerAlertSetting
+  /** 家族コードでつないでいるとき */
+  family: FamilyLink | null
   timerState: TimerState
 }
 
@@ -120,6 +143,10 @@ export type AppAction =
   | { type: 'SET_ACCOUNT_ID'; payload: string }
   | { type: 'SET_REMINDER'; payload: ReminderSetting }
   | { type: 'SET_TUTORIAL_SEEN'; payload: { userId: string; seen: boolean } }
+  | { type: 'SET_TIMER_ALERT'; payload: TimerAlertSetting }
+  | { type: 'SET_FAMILY'; payload: FamilyLink | null }
+  /** 家族のサーバーから届いた共有データで置き換える */
+  | { type: 'FAMILY_REMOTE'; payload: SharedData }
   | { type: 'SET_GOAL'; payload: GoalSetting }
   | { type: 'DELETE_GOAL'; payload: string }
   | { type: 'SET_VISIBILITY'; payload: { userId: string; visibility: ParentVisibility } }

@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, ScrollView } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, ScrollView, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter, Redirect } from 'expo-router'
 import { useState } from 'react'
@@ -53,6 +53,20 @@ export default function LoginScreen() {
   // 使い方によって入口を分ける
   if (state.mode === 'solo') return <Redirect href="/solo/home" />
   if (state.mode === null && state.users.length === 0) return <Redirect href="/welcome" />
+  // 家族コードでつないだ直後は、家族の記録が届くまで待つ
+  if (state.family && !state.users.some(u => u.role === 'parent')) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.container}>
+          <ActivityIndicator size="large" color="#4f9cf9" />
+          <Text style={styles.subtitle}>家族の記録を受け取っています…</Text>
+          <TouchableOpacity onPress={() => { dispatch({ type: 'SET_FAMILY', payload: null }); router.replace('/welcome') }}>
+            <Text style={styles.cancelLink}>つなぐのをやめる</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    )
+  }
   // 保護者が1人もいなければ初回登録へ（保護者がいないと設定画面に入れないため）
   if (!state.users.some(u => u.role === 'parent')) return <Redirect href="/setup" />
 
@@ -63,6 +77,7 @@ export default function LoginScreen() {
         <Text style={styles.emoji}>📚</Text>
         <Text style={styles.title}>まなびチーム</Text>
         <Text style={styles.subtitle}>だれでログインしますか？</Text>
+        {state.family && <Text style={styles.linkedNote}>🔗 家族のスマホとつながっています。じぶんの名前をえらんでね</Text>}
       </View>
       <View style={styles.grid}>
         {state.users.map(user => (
@@ -129,6 +144,8 @@ const styles = StyleSheet.create({
   badge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 20 },
   badgeText: { fontSize: 11, fontWeight: '600' },
   lock: { fontSize: 10, color: '#94a3b8' },
+  cancelLink: { fontSize: 12, color: '#94a3b8', marginTop: 24, padding: 8 },
+  linkedNote: { fontSize: 11, color: '#4f9cf9', marginTop: 6 },
 
   backdrop: { flex: 1, backgroundColor: 'rgba(15,23,42,0.55)', alignItems: 'center', justifyContent: 'center', padding: 24 },
   gateCard: { backgroundColor: 'white', borderRadius: 20, padding: 24, width: '100%', maxWidth: 360, gap: 12 },

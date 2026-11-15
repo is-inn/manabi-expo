@@ -1,6 +1,7 @@
 import { Tabs, Redirect } from 'expo-router'
 import { Text } from 'react-native'
 import { useApp } from '../../src/hooks/AppContext'
+import Tutorial from '../../src/components/Tutorial'
 
 export default function SoloLayout() {
   const { state } = useApp()
@@ -8,6 +9,8 @@ export default function SoloLayout() {
   if (state.mode !== 'solo') return <Redirect href="/" />
 
   return (
+    <>
+    <Tutorial kind="solo" />
     <Tabs screenOptions={{
       headerShown: false,
       tabBarStyle: { backgroundColor: 'white', borderTopColor: '#e2e8f0' },
@@ -20,5 +23,6 @@ export default function SoloLayout() {
       <Tabs.Screen name="log" options={{ title: 'きろく', tabBarIcon: () => <Text style={{ fontSize: 20 }}>📝</Text> }} />
       <Tabs.Screen name="settings" options={{ title: '設定', tabBarIcon: () => <Text style={{ fontSize: 20 }}>⚙️</Text> }} />
     </Tabs>
+    </>
   )
 }

@@ -1,4 +1,7 @@
-import { ParentVisibility, ReminderSetting, Subject } from '../types'
+import { ParentVisibility, ReminderSetting, Subject, TimerAlertSetting } from '../types'
+
+/** タイマー終了の知らせ方の初期値（バイブだけ・通知でも知らせる） */
+export const DEFAULT_TIMER_ALERT: TimerAlertSetting = { sound: 'vibrate', notify: true }
 
 /** リマインド通知の初期値（オフ。オンにすると毎日19:00） */
 export const DEFAULT_REMINDER: ReminderSetting = { enabled: false, hour: 19, minute: 0, days: [true, true, true, true, true, true, true] }

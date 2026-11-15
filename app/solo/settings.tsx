@@ -6,7 +6,8 @@ import { useApp } from '../../src/hooks/AppContext'
 import GoalStepper from '../../src/components/GoalStepper'
 import SubjectsSection from '../../src/components/SubjectsSection'
 import ReminderSettings from '../../src/components/ReminderSettings'
-import { MAX_NAME_LENGTH } from '../../src/utils/defaults'
+import TimerAlertSettings from '../../src/components/TimerAlertSettings'
+import { MAX_NAME_LENGTH, SOLO_USER_ID } from '../../src/utils/defaults'
 
 export default function SoloSettings() {
   const { state, dispatch } = useApp()
@@ -44,6 +45,19 @@ export default function SoloSettings() {
         <SubjectsSection />
 
         <ReminderSettings />
+
+        <TimerAlertSettings />
+
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>使い方の説明</Text>
+          <Text style={styles.hint}>はじめに見た説明を、もう一度見られます。</Text>
+          <TouchableOpacity
+            onPress={() => dispatch({ type: 'SET_TUTORIAL_SEEN', payload: { userId: SOLO_USER_ID, seen: false } })}
+            style={styles.modeBtn}
+          >
+            <Text style={styles.modeBtnText}>📖 使い方を見る</Text>
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>アカウント（あとから登録できます）</Text>

@@ -29,7 +29,7 @@ export default function WelcomeScreen() {
         <View style={styles.header}>
           <Text style={styles.emoji}>📚</Text>
           <Text style={styles.title}>まなびチーム</Text>
-          <Text style={styles.desc}>どちらで使いますか？{'\n'}あとから設定で切り替えられます。</Text>
+          <Text style={styles.desc}>どれで使いますか？{'\n'}あとから設定で切り替えられます。</Text>
         </View>
 
         <TouchableOpacity style={[styles.card, styles.soloCard]} onPress={chooseSolo}>
@@ -43,14 +43,28 @@ export default function WelcomeScreen() {
 
         <TouchableOpacity style={[styles.card, styles.familyCard]} onPress={chooseFamily}>
           <Text style={styles.cardIcon}>👨‍👩‍👧</Text>
-          <Text style={styles.cardTitle}>家族で使う</Text>
+          <Text style={styles.cardTitle}>家族で使う（はじめて）</Text>
           <Text style={styles.cardDesc}>
             保護者がタスクを出して、こどもの勉強をみまもる。{'\n'}
-            保護者とこどもを登録して使います。
+            はじめに保護者とこどもを登録します。{'\n'}
+            1台のスマホで名前をえらんで切りかえて使えます。{'\n'}
+            こどもやもう1人の保護者のスマホとも、あとから家族コードでつなげられます。
           </Text>
         </TouchableOpacity>
 
-        <Text style={styles.note}>入力した内容はこの端末の中だけに保存されます。</Text>
+        <TouchableOpacity style={[styles.card, styles.joinCard]} onPress={() => router.push('/join')}>
+          <Text style={styles.cardIcon}>🔗</Text>
+          <Text style={styles.cardTitle}>家族コードで参加</Text>
+          <Text style={styles.cardDesc}>
+            家族がもう使っているときは、こちら。{'\n'}
+            保護者のスマホに出ている家族コードを入れると、{'\n'}
+            このスマホでも同じ記録が見られます（こども・保護者どちらでもOK）。
+          </Text>
+        </TouchableOpacity>
+
+        <Text style={styles.note}>
+          入力した内容はこの端末の中に保存されます。{'\n'}家族コードでつないだときだけ、家族の記録をサーバーで共有します。
+        </Text>
       </ScrollView>
     </SafeAreaView>
   )
@@ -66,6 +80,7 @@ const styles = StyleSheet.create({
   card: { backgroundColor: 'white', borderRadius: 20, padding: 22, gap: 6, alignItems: 'center', borderWidth: 2, shadowColor: '#4f9cf9', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 12, elevation: 3 },
   soloCard: { borderColor: '#4fcf8e' },
   familyCard: { borderColor: '#4f9cf9' },
+  joinCard: { borderColor: '#f9a74f' },
   cardIcon: { fontSize: 40 },
   cardTitle: { fontSize: 18, fontWeight: '700', color: '#1a202c' },
   cardDesc: { fontSize: 12, color: '#64748b', lineHeight: 19, textAlign: 'center' },

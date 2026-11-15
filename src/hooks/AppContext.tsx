@@ -2,7 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect, useState } fro
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { View, ActivityIndicator, StyleSheet } from 'react-native'
 import { AppState, AppAction, TimerState, ParentVisibility } from '../types'
-import { DEFAULT_SUBJECTS, DEFAULT_REMINDER, DEFAULT_GOAL_MINUTES, MAX_GOAL_MINUTES, MAX_WEEKLY_GOAL_MINUTES, MAX_GOAL_TITLE_LENGTH } from '../utils/defaults'
+import { DEFAULT_SUBJECTS, DEFAULT_REMINDER, DEFAULT_TIMER_ALERT, DEFAULT_GOAL_MINUTES, MAX_GOAL_MINUTES, MAX_WEEKLY_GOAL_MINUTES, MAX_GOAL_TITLE_LENGTH } from '../utils/defaults'
 import { generateAccountId } from '../utils/helpers'
 
 const STORAGE_KEY = 'manabi:appState:v3'
@@ -26,6 +26,8 @@ const initialState: AppState = {
   studySessions: [],
   reminder: DEFAULT_REMINDER,
   tutorialSeen: [],
+  timerAlert: DEFAULT_TIMER_ALERT,
+  family: null,
   timerState: IDLE_TIMER,
 }
 
@@ -101,6 +103,27 @@ function reducer(state: AppState, action: AppAction): AppState {
       const rest = state.tutorialSeen.filter(id => id !== userId)
       return { ...state, tutorialSeen: seen ? [...rest, userId] : rest }
     }
+    case 'SET_TIMER_ALERT': return { ...state, timerAlert: action.payload }
+    case 'SET_FAMILY': return { ...state, family: action.payload }
+    case 'FAMILY_REMOTE': {
+      const p = action.payload
+      const subjects = p.subjects.length > 0 ? p.subjects : state.subjects
+      const me = state.currentUser && p.users.find(u => u.id === state.currentUser!.id)
+      // 自分が家族から外されたら、ログイン画面に戻す。タイマーの人がいなくなったら止める
+      const timerGone = state.timerState.sessionUserId !== '' && !p.users.some(u => u.id === state.timerState.sessionUserId)
+        && state.timerState.sessionUserId !== 'solo'
+      return {
+        ...state,
+        users: p.users,
+        subjects,
+        tasks: p.tasks,
+        studySessions: p.studySessions,
+        goals: p.goals,
+        visibility: p.visibility,
+        currentUser: me ?? null,
+        timerState: timerGone ? IDLE_TIMER : state.timerState,
+      }
+    }
     case 'SET_GOAL': {
       const rest = state.goals.filter(g => g.userId !== action.payload.userId)
       return { ...state, goals: [...rest, action.payload] }
@@ -152,7 +175,7 @@ function reducer(state: AppState, action: AppAction): AppState {
 const AppContext = createContext<{ state: AppState; dispatch: React.Dispatch<AppAction> } | null>(null)
 
 /** 永続化する部分だけを抜き出す（timerState は揮発でよい） */
-type Persisted = Pick<AppState, 'mode' | 'accountId' | 'goals' | 'visibility' | 'currentUser' | 'users' | 'solo' | 'subjects' | 'tasks' | 'studySessions' | 'reminder' | 'tutorialSeen'>
+type Persisted = Pick<AppState, 'mode' | 'accountId' | 'goals' | 'visibility' | 'currentUser' | 'users' | 'solo' | 'subjects' | 'tasks' | 'studySessions' | 'reminder' | 'tutorialSeen' | 'timerAlert' | 'family'>
 
 /** 保存・バックアップする部分だけを取り出す */
 export const toPersisted = (state: AppState): Persisted => ({
@@ -168,6 +191,9 @@ export const toPersisted = (state: AppState): Persisted => ({
   studySessions: state.studySessions,
   reminder: state.reminder,
   tutorialSeen: state.tutorialSeen,
+  timerAlert: state.timerAlert,
+  // 「最初の同期」の印は、その端末だけの途中経過なので保存しない
+  family: state.family ? { id: state.family.id, code: state.family.code } : null,
 })
 
 /** 保存データの形を確かめて、使えるものだけ取り出す（壊れていても落とさない） */
@@ -193,6 +219,16 @@ export function sanitize(saved: Partial<Persisted>): Partial<Persisted> {
       minute: Math.min(Math.max(Math.round(r.minute), 0), 59),
       days: r.days.map(d => d === true),
     }
+  }
+  const ta = saved.timerAlert
+  if (ta && typeof ta === 'object') {
+    out.timerAlert = { sound: ta.sound === 'vibrateSound' ? 'vibrateSound' : 'vibrate', notify: ta.notify !== false }
+  }
+  const f = saved.family
+  if (f && typeof f.id === 'string' && /^[A-Za-z0-9_-]{6,40}$/.test(f.id) && typeof f.code === 'string' && /^[A-Z0-9]{8}$/.test(f.code)) {
+    out.family = { id: f.id, code: f.code }
+  } else if (f === null) {
+    out.family = null
   }
   const parentIds = new Set((out.users ?? []).filter(u => u.role === 'parent').map(u => u.id))
   if (Array.isArray(saved.goals)) {
@@ -254,25 +290,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // 変更のたびに保存する（hydrate 完了前は保存しない＝初期値の上書き防止）
   useEffect(() => {
     if (!hydrated) return
-    const persisted: Persisted = {
-      mode: state.mode,
-      accountId: state.accountId,
-      goals: state.goals,
-      visibility: state.visibility,
-      currentUser: state.currentUser,
-      users: state.users,
-      solo: state.solo,
-      subjects: state.subjects,
-      tasks: state.tasks,
-      studySessions: state.studySessions,
-      reminder: state.reminder,
-      tutorialSeen: state.tutorialSeen,
-    }
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(persisted))
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toPersisted(state)))
       // v3 を書けたことを確かめてから v2 を消す
       .then(() => AsyncStorage.removeItem(PREV_STORAGE_KEY).catch(() => {}))
       .catch(e => console.warn('[AppContext] persist failed', e))
-  }, [hydrated, state.mode, state.accountId, state.goals, state.visibility, state.currentUser, state.users, state.solo, state.subjects, state.tasks, state.studySessions, state.reminder, state.tutorialSeen])
+  }, [hydrated, state.mode, state.accountId, state.goals, state.visibility, state.currentUser, state.users, state.solo, state.subjects, state.tasks, state.studySessions, state.reminder, state.tutorialSeen, state.timerAlert, state.family])
 
   // 初回起動（または v2 からの移行）で持ち主IDを作る。端末内だけで使い、送信しない
   useEffect(() => {

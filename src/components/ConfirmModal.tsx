@@ -19,7 +19,7 @@ export default function ConfirmModal({ visible, title, message, confirmLabel = '
           <Text style={styles.message}>{message}</Text>
           <View style={styles.btnRow}>
             <TouchableOpacity onPress={onCancel} style={[styles.btn, styles.cancel]}>
-              <Text style={styles.cancelText}>やめる</Text>
+              <Text style={styles.cancelText}>{confirmLabel === 'やめる' ? 'もどる' : 'やめる'}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={onConfirm} style={[styles.btn, styles.confirm]}>
               <Text style={styles.confirmText}>{confirmLabel}</Text>

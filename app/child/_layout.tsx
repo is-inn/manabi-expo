@@ -5,7 +5,7 @@ import Tutorial from '../../src/components/Tutorial'
 export default function ChildLayout() {
   return (
     <>
-    <Tutorial role="child" />
+    <Tutorial kind="child" />
     <Tabs screenOptions={{
       headerShown: false,
       tabBarStyle: { backgroundColor: 'white', borderTopColor: '#e2e8f0' },
