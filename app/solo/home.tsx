@@ -6,6 +6,7 @@ import { SOLO_USER_ID } from '../../src/utils/defaults'
 import { formatDuration, getDailyTotals, getGoalStreak, getBestStreak, getTodayStr, getTotalStudyTime, getSubjectColor, toDateStr } from '../../src/utils/helpers'
 import StreakBadges from '../../src/components/StreakBadges'
 import WeeklyReview from '../../src/components/WeeklyReview'
+import StudyCharts from '../../src/components/StudyCharts'
 
 export default function SoloHome() {
   const { state } = useApp()
@@ -86,6 +87,8 @@ export default function SoloHome() {
           </View>
           <Text style={styles.legend}>緑は目標を達成した日です</Text>
         </View>
+
+        <StudyCharts sessions={sessions} showWeek={false} />
 
         {recent.length > 0 && (
           <View style={styles.card}>

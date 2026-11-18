@@ -77,7 +77,10 @@ export default function StudyTimer({ userId, title = '⏱️ 勉強時間をけ�
     else setFinishOpen(true)
   }
 
+  const noteEmpty = note.trim().length === 0
+
   const save = () => {
+    if (noteEmpty) return // 空白のままでは記録できない
     dispatch({
       type: 'SAVE_SESSION',
       payload: {
@@ -86,7 +89,7 @@ export default function StudyTimer({ userId, title = '⏱️ 勉強時間をけ�
         subject: timerState.subject,
         duration,
         date: getTodayStr(),
-        note: note.trim() || undefined,
+        note: note.trim(),
       },
     })
     setFinishOpen(false)
@@ -149,6 +152,7 @@ export default function StudyTimer({ userId, title = '⏱️ 勉強時間をけ�
             )}
 
             <Text style={styles.sectionLabel}>科目を選んでね</Text>
+            {state.subjects.length === 0 && <Text style={styles.noteHint}>科目がありません。設定で科目を追加してください。</Text>}
             <View style={styles.row}>
               {state.subjects.map(s => (
                 <TouchableOpacity key={s.id} onPress={() => setSelected(s.name)}
@@ -235,7 +239,7 @@ export default function StudyTimer({ userId, title = '⏱️ 勉強時間をけ�
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>おつかれさま！🎉</Text>
             <Text style={styles.modalSummary}>{timerState.subject}　{formatDuration(duration)}</Text>
-            <Text style={styles.sectionLabel}>がんばったこと（なくてもOK）</Text>
+            <Text style={styles.sectionLabel}>がんばったこと（ひとこと書いてね）</Text>
             <TextInput
               value={note}
               onChangeText={setNote}
@@ -248,10 +252,11 @@ export default function StudyTimer({ userId, title = '⏱️ 勉強時間をけ�
               <TouchableOpacity onPress={discard} style={[styles.modalBtn, styles.discard]}>
                 <Text style={styles.discardText}>きろくしない</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={save} style={[styles.modalBtn, styles.save]}>
+              <TouchableOpacity onPress={save} disabled={noteEmpty} style={[styles.modalBtn, styles.save, noteEmpty && styles.saveOff]}>
                 <Text style={styles.saveText}>きろくする</Text>
               </TouchableOpacity>
             </View>
+            {noteEmpty && <Text style={styles.noteHint}>何をがんばったか、ひとこと書くと記録できます。</Text>}
           </View>
         </View>
       </Modal>
@@ -320,4 +325,6 @@ const styles = StyleSheet.create({
   discardText: { color: '#64748b', fontWeight: '700' },
   save: { backgroundColor: '#4fcf8e' },
   saveText: { color: 'white', fontWeight: '700' },
+  saveOff: { opacity: 0.4 },
+  noteHint: { fontSize: 12, color: '#ef4444', textAlign: 'center' },
 })

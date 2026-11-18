@@ -16,7 +16,11 @@ export const DEFAULT_SUBJECTS: Subject[] = [
   { id: 'sub-other', name: 'その他', color: '#9ca3af' },
 ]
 
-export const SUBJECT_PALETTE = ['#4f9cf9', '#f97b4f', '#4fcf8e', '#b94ff9', '#f9c74f', '#ef6f9b', '#2bb5c9', '#9ca3af']
+export const SUBJECT_PALETTE = [
+  '#4f9cf9', '#f97b4f', '#4fcf8e', '#b94ff9', '#f9c74f', '#ef6f9b', '#2bb5c9', '#9ca3af',
+  '#1d4ed8', '#dc2626', '#16a34a', '#7c3aed', '#d97706', '#db2777', '#0e7490', '#65a30d',
+  '#84cc16', '#fb923c', '#a78bfa', '#f472b6', '#38bdf8', '#14b8a6', '#92400e', '#334155',
+]
 
 /** 科目が削除済みなど、色が引けないときの色 */
 export const FALLBACK_SUBJECT_COLOR = '#9ca3af'

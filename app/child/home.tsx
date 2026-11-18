@@ -6,6 +6,7 @@ import { useApp } from '../../src/hooks/AppContext'
 import { formatDuration, getTotalStudyTime, getStreak, getBestStreak } from '../../src/utils/helpers'
 import StreakBadges from '../../src/components/StreakBadges'
 import WeeklyReview from '../../src/components/WeeklyReview'
+import StudyCharts from '../../src/components/StudyCharts'
 import ReminderSettings from '../../src/components/ReminderSettings'
 import { avatarAsText } from '../../src/utils/avatar'
 
@@ -68,6 +69,7 @@ export default function ChildHome() {
 
         <StreakBadges streak={streak} best={getBestStreak(mySessions)} />
         <WeeklyReview sessions={mySessions} />
+        <StudyCharts sessions={mySessions} kids />
         <ReminderSettings />
 
         <TouchableOpacity
