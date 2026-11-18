@@ -27,6 +27,7 @@ const initialState: AppState = {
   reminder: DEFAULT_REMINDER,
   tutorialSeen: [],
   timerAlert: DEFAULT_TIMER_ALERT,
+  cheerNotify: false,
   family: null,
   timerState: IDLE_TIMER,
 }
@@ -104,6 +105,7 @@ function reducer(state: AppState, action: AppAction): AppState {
       return { ...state, tutorialSeen: seen ? [...rest, userId] : rest }
     }
     case 'SET_TIMER_ALERT': return { ...state, timerAlert: action.payload }
+    case 'SET_CHEER_NOTIFY': return { ...state, cheerNotify: action.payload }
     case 'SET_FAMILY': return { ...state, family: action.payload }
     case 'FAMILY_REMOTE': {
       const p = action.payload
@@ -175,7 +177,7 @@ function reducer(state: AppState, action: AppAction): AppState {
 const AppContext = createContext<{ state: AppState; dispatch: React.Dispatch<AppAction> } | null>(null)
 
 /** 永続化する部分だけを抜き出す（timerState は揮発でよい） */
-type Persisted = Pick<AppState, 'mode' | 'accountId' | 'goals' | 'visibility' | 'currentUser' | 'users' | 'solo' | 'subjects' | 'tasks' | 'studySessions' | 'reminder' | 'tutorialSeen' | 'timerAlert' | 'family'>
+type Persisted = Pick<AppState, 'mode' | 'accountId' | 'goals' | 'visibility' | 'currentUser' | 'users' | 'solo' | 'subjects' | 'tasks' | 'studySessions' | 'reminder' | 'tutorialSeen' | 'timerAlert' | 'cheerNotify' | 'family'>
 
 /** 保存・バックアップする部分だけを取り出す */
 export const toPersisted = (state: AppState): Persisted => ({
@@ -192,6 +194,7 @@ export const toPersisted = (state: AppState): Persisted => ({
   reminder: state.reminder,
   tutorialSeen: state.tutorialSeen,
   timerAlert: state.timerAlert,
+  cheerNotify: state.cheerNotify,
   // 「最初の同期」の印は、その端末だけの途中経過なので保存しない
   family: state.family ? { id: state.family.id, code: state.family.code } : null,
 })
@@ -224,6 +227,7 @@ export function sanitize(saved: Partial<Persisted>): Partial<Persisted> {
   if (ta && typeof ta === 'object') {
     out.timerAlert = { sound: ta.sound === 'vibrateSound' ? 'vibrateSound' : 'vibrate', notify: ta.notify !== false }
   }
+  if (saved.cheerNotify === true) out.cheerNotify = true
   const f = saved.family
   if (f && typeof f.id === 'string' && /^[A-Za-z0-9_-]{6,40}$/.test(f.id) && typeof f.code === 'string' && /^[A-Z0-9]{8}$/.test(f.code)) {
     out.family = { id: f.id, code: f.code }
@@ -294,7 +298,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // v3 を書けたことを確かめてから v2 を消す
       .then(() => AsyncStorage.removeItem(PREV_STORAGE_KEY).catch(() => {}))
       .catch(e => console.warn('[AppContext] persist failed', e))
-  }, [hydrated, state.mode, state.accountId, state.goals, state.visibility, state.currentUser, state.users, state.solo, state.subjects, state.tasks, state.studySessions, state.reminder, state.tutorialSeen, state.timerAlert, state.family])
+  }, [hydrated, state.mode, state.accountId, state.goals, state.visibility, state.currentUser, state.users, state.solo, state.subjects, state.tasks, state.studySessions, state.reminder, state.tutorialSeen, state.timerAlert, state.cheerNotify, state.family])
 
   // 初回起動（または v2 からの移行）で持ち主IDを作る。端末内だけで使い、送信しない
   useEffect(() => {

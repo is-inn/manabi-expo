@@ -122,6 +122,8 @@ export interface AppState {
   /** 使い方の説明（チュートリアル）を見終えた人のID */
   tutorialSeen: string[]
   timerAlert: TimerAlertSetting
+  /** この端末（保護者）で「こどもが勉強したよ」の通知を受け取る。家族コードでつないでいるときだけ使える */
+  cheerNotify: boolean
   /** 家族コードでつないでいるとき */
   family: FamilyLink | null
   timerState: TimerState
@@ -144,6 +146,7 @@ export type AppAction =
   | { type: 'SET_REMINDER'; payload: ReminderSetting }
   | { type: 'SET_TUTORIAL_SEEN'; payload: { userId: string; seen: boolean } }
   | { type: 'SET_TIMER_ALERT'; payload: TimerAlertSetting }
+  | { type: 'SET_CHEER_NOTIFY'; payload: boolean }
   | { type: 'SET_FAMILY'; payload: FamilyLink | null }
   /** 家族のサーバーから届いた共有データで置き換える */
   | { type: 'FAMILY_REMOTE'; payload: SharedData }

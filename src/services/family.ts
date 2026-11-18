@@ -1,5 +1,5 @@
 import { signInAnonymously, type User as FbUser } from 'firebase/auth'
-import { ref, get, set, remove } from 'firebase/database'
+import { ref, get, set, remove, update } from 'firebase/database'
 import { auth, db } from './firebase'
 import { sanitize } from '../hooks/AppContext'
 import { ParentVisibility, SharedData } from '../types'
@@ -38,7 +38,8 @@ export async function ensureAuth(): Promise<FbUser> {
 
 export async function joinAsMember(familyId: string, code: string): Promise<void> {
   const u = await ensureAuth()
-  await set(ref(db, `families/${familyId}/members/${u.uid}`), { code, at: Date.now() })
+  // 通知用のID（push / role）を消さないよう、置きかえずに更新する
+  await update(ref(db, `families/${familyId}/members/${u.uid}`), { code, at: Date.now() })
 }
 
 /** 新しい家族を作って、家族コードを発行する */

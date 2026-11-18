@@ -8,6 +8,7 @@ import SubjectsSection from '../../src/components/SubjectsSection'
 import ReminderSettings from '../../src/components/ReminderSettings'
 import TimerAlertSettings from '../../src/components/TimerAlertSettings'
 import FamilyLinkCard from '../../src/components/FamilyLinkCard'
+import CheerSettings from '../../src/components/CheerSettings'
 import ConfirmModal from '../../src/components/ConfirmModal'
 import Avatar from '../../src/components/Avatar'
 import VisibilitySwitches from '../../src/components/VisibilitySwitches'
@@ -91,6 +92,7 @@ export default function ParentSettings() {
 
         {/* ---- 家族のスマホをつなぐ ---- */}
         <FamilyLinkCard />
+        <CheerSettings />
 
         {/* ---- リマインド ---- */}
         <ReminderSettings />
