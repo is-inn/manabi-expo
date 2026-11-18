@@ -16,7 +16,8 @@ export default function ParentProgress() {
         <Text style={styles.pageTitle}>📊 学習進捗</Text>
 
         {children.map(child => {
-          const sessions = state.studySessions.filter(s => s.userId === child.id)
+          // 自分（ログイン中の保護者）の分は、ひとりモードで付けた記録もあわせて数える
+          const sessions = state.studySessions.filter(s => s.userId === child.id || (child.id === state.currentUser?.id && child.role === 'parent' && s.userId === 'solo'))
           const totalTime = getTotalStudyTime(sessions)
           const streak = getStreak(sessions)
 

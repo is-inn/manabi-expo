@@ -2,8 +2,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { useApp } from '../../src/hooks/AppContext'
-import { SOLO_USER_ID } from '../../src/utils/defaults'
-import { formatDuration, getDailyTotals, getGoalStreak, getBestStreak, getTodayStr, getTotalStudyTime, getSubjectColor, toDateStr } from '../../src/utils/helpers'
+import { formatDuration, mergeOwnSessions, pickMyParentId, getDailyTotals, getGoalStreak, getBestStreak, getTodayStr, getTotalStudyTime, getSubjectColor, toDateStr } from '../../src/utils/helpers'
 import StreakBadges from '../../src/components/StreakBadges'
 import WeeklyReview from '../../src/components/WeeklyReview'
 import StudyCharts from '../../src/components/StudyCharts'
@@ -11,7 +10,10 @@ import StudyCharts from '../../src/components/StudyCharts'
 export default function SoloHome() {
   const { state } = useApp()
   const router = useRouter()
-  const sessions = state.studySessions.filter(s => s.userId === SOLO_USER_ID)
+  // ひとりモードの記録に、家族モードの自分（保護者）の記録もまとめて見せる
+  const parentId = pickMyParentId(state.users, state.currentUser)
+  const sessions = mergeOwnSessions(state.studySessions, parentId)
+  const mergedFamily = parentId !== null && sessions.some(s => s.userId === parentId)
   const goalSec = state.solo.goalMinutes * 60
 
   const totals = getDailyTotals(sessions)
@@ -40,6 +42,7 @@ export default function SoloHome() {
           <Text style={styles.heroStreak}>
             {streak > 0 ? `🔥 目標を${streak}日連続で達成中！` : '今日の目標をめざそう！'}
           </Text>
+          {mergedFamily && <Text style={styles.heroMerge}>家族モードの自分の記録も合わせて数えています</Text>}
         </View>
 
         <View style={styles.card}>
@@ -116,6 +119,7 @@ const styles = StyleSheet.create({
   heroSub: { color: 'rgba(255,255,255,0.85)', fontSize: 14, marginBottom: 4 },
   heroName: { color: 'white', fontSize: 24, fontWeight: '700' },
   heroStreak: { color: 'rgba(255,255,255,0.95)', fontSize: 13, marginTop: 8 },
+  heroMerge: { color: 'rgba(255,255,255,0.85)', fontSize: 11, marginTop: 6 },
   card: { backgroundColor: 'white', borderRadius: 16, padding: 18, gap: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
   cardLabel: { fontSize: 12, color: '#64748b', fontWeight: '600' },
   goalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

@@ -9,5 +9,6 @@ export default function ParentSelf() {
   const { state } = useApp()
   const me = state.currentUser
   if (!me) return <Text>ログインしてください</Text>
-  return <StudyTimer userId={me.id} title="⏱️ じぶんの勉強" showHistory header={<><ParentGoalCard userId={me.id} /><StudyOptionsPicker /></>} />
+  // ひとりモードで付けた自分の記録も、あわせて数える
+  return <StudyTimer userId={me.id} alsoUserIds={['solo']} title="⏱️ じぶんの勉強" showHistory header={<><ParentGoalCard userId={me.id} /><StudyOptionsPicker /></>} />
 }

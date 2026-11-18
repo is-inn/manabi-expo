@@ -32,9 +32,10 @@ export default function ParentSettings() {
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>ご家族</Text>
           <TouchableOpacity onPress={() => { setAddingUser(!addingUser); setEditingUserId(null) }} style={styles.addBtn}>
-            <Text style={styles.addBtnText}>{addingUser ? 'キャンセル' : '＋ 追加'}</Text>
+            <Text style={styles.addBtnText}>{addingUser ? 'キャンセル' : '＋ 家族を追加'}</Text>
           </TouchableOpacity>
         </View>
+        {!addingUser && <Text style={styles.addHint}>こども・もう1人の保護者は、右上の「＋ 家族を追加」から登録できます。</Text>}
 
         {addingUser && (
           <MemberForm
@@ -128,9 +129,10 @@ export default function ParentSettings() {
         </View>
         {/* ---- 使い方 ---- */}
         <View style={[styles.modeCard, { marginTop: 12 }]}>
-          <Text style={styles.sectionTitle}>使い方</Text>
+          <Text style={styles.sectionTitle}>🔁 ひとりで使う／家族で使う を切りかえる</Text>
           <Text style={styles.modeDesc}>
-            ひとりで勉強する使い方に切り替えられます。家族の登録やタスクはそのまま残ります。
+            ひとりで勉強する使い方に切り替えられます。家族の登録やタスクはそのまま残ります。{'\n'}
+            ひとりモードからは、同じ設定画面でいつでも「家族で使う」に戻せます。
           </Text>
           <TouchableOpacity onPress={() => router.replace('/welcome')} style={styles.modeBtn}>
             <Text style={styles.modeBtnText}>🧑‍🎓 ひとりで使うモードへ</Text>
@@ -155,6 +157,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#f5f7ff' },
   container: { padding: 16, gap: 12 },
   pageTitle: { fontSize: 20, fontWeight: '700' },
+  addHint: { fontSize: 12, color: '#64748b', lineHeight: 18, marginTop: -4 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: '#1a202c' },
   addBtn: { backgroundColor: '#4f9cf9', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },

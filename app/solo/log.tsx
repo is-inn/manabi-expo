@@ -3,15 +3,14 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useState } from 'react'
 import { useApp } from '../../src/hooks/AppContext'
 import ConfirmModal from '../../src/components/ConfirmModal'
-import { SOLO_USER_ID } from '../../src/utils/defaults'
-import { formatDuration, getDailyTotals, getSubjectColor, getTotalStudyTime, toDateStr } from '../../src/utils/helpers'
+import { formatDuration, mergeOwnSessions, pickMyParentId, getDailyTotals, getSubjectColor, getTotalStudyTime, toDateStr } from '../../src/utils/helpers'
 import { StudySession } from '../../src/types'
 
 export default function SoloLog() {
   const { state, dispatch } = useApp()
   const [pendingDelete, setPendingDelete] = useState<StudySession | null>(null)
 
-  const sessions = state.studySessions.filter(s => s.userId === SOLO_USER_ID)
+  const sessions = mergeOwnSessions(state.studySessions, pickMyParentId(state.users, state.currentUser))
   const totals = getDailyTotals(sessions)
   const goalSec = state.solo.goalMinutes * 60
 

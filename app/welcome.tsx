@@ -46,9 +46,13 @@ export default function WelcomeScreen() {
           <Text style={styles.cardTitle}>家族で使う（はじめて）</Text>
           <Text style={styles.cardDesc}>
             保護者がタスクを出して、こどもの勉強をみまもる。{'\n'}
-            はじめに保護者とこどもを登録します。{'\n'}
-            1台のスマホで名前をえらんで切りかえて使えます。{'\n'}
-            こどもやもう1人の保護者のスマホとも、あとから家族コードでつなげられます。
+            はじめに保護者とこどもを登録します。
+          </Text>
+          <Text style={styles.cardList}>
+            ✅ 保護者：タスクを出す・勉強の進みぐあいを見る・週の目標を決める{'\n'}
+            ✅ こども：タイマーで勉強・タスクをチェック・れんぞくバッジ{'\n'}
+            ✅ 1台のスマホで、名前をえらんで切りかえて使えます{'\n'}
+            ✅ こどもや、もう1人の保護者のスマホとも、あとから「家族コード」でつなげられます
           </Text>
         </TouchableOpacity>
 
@@ -84,5 +88,6 @@ const styles = StyleSheet.create({
   cardIcon: { fontSize: 40 },
   cardTitle: { fontSize: 18, fontWeight: '700', color: '#1a202c' },
   cardDesc: { fontSize: 12, color: '#64748b', lineHeight: 19, textAlign: 'center' },
+  cardList: { fontSize: 12, color: '#475569', lineHeight: 20, alignSelf: 'stretch', backgroundColor: '#f5f9ff', borderRadius: 10, padding: 10, marginTop: 4 },
   note: { textAlign: 'center', fontSize: 11, color: '#94a3b8', marginTop: 4 },
 })

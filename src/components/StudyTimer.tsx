@@ -20,10 +20,12 @@ interface Props {
   showHistory?: boolean
   /** タイトルの下に差し込む表示（保護者の目標カードなど） */
   header?: ReactNode
+  /** 今日の合計・直近の記録に、あわせて数える別の記録のID（ひとりモード⇔家族モードの自分） */
+  alsoUserIds?: string[]
 }
 
 /** ストップウォッチ／タイマーと、終了時の「がんばったこと」メモ。ひとりモードと保護者の「じぶんの勉強」で共通 */
-export default function StudyTimer({ userId, title = '⏱️ 勉強時間をけいそく', showHistory = false, header }: Props) {
+export default function StudyTimer({ userId, title = '⏱️ 勉強時間をけいそく', showHistory = false, header, alsoUserIds = [] }: Props) {
   const { state, dispatch } = useApp()
   const { timerState } = state
   const [kind, setKind] = useState<Kind>('stopwatch')
@@ -77,10 +79,7 @@ export default function StudyTimer({ userId, title = '⏱️ 勉強時間をけ�
     else setFinishOpen(true)
   }
 
-  const noteEmpty = note.trim().length === 0
-
   const save = () => {
-    if (noteEmpty) return // 空白のままでは記録できない
     dispatch({
       type: 'SAVE_SESSION',
       payload: {
@@ -89,7 +88,7 @@ export default function StudyTimer({ userId, title = '⏱️ 勉強時間をけ�
         subject: timerState.subject,
         duration,
         date: getTodayStr(),
-        note: note.trim(),
+        note: note.trim() || undefined,
       },
     })
     setFinishOpen(false)
@@ -102,7 +101,7 @@ export default function StudyTimer({ userId, title = '⏱️ 勉強時間をけ�
     setNote('')
   }
 
-  const sessions = state.studySessions.filter(s => s.userId === userId)
+  const sessions = state.studySessions.filter(s => s.userId === userId || alsoUserIds.includes(s.userId))
   const todayTotal = getDailyTotals(sessions)[getTodayStr()] ?? 0
   const display = isCountdown ? Math.max(target > 0 ? target - timerState.elapsed : minutes * 60, 0) : timerState.elapsed
   const idle = !running && !pending
@@ -239,7 +238,7 @@ export default function StudyTimer({ userId, title = '⏱️ 勉強時間をけ�
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>おつかれさま！🎉</Text>
             <Text style={styles.modalSummary}>{timerState.subject}　{formatDuration(duration)}</Text>
-            <Text style={styles.sectionLabel}>がんばったこと（ひとこと書いてね）</Text>
+            <Text style={styles.sectionLabel}>がんばったこと（書いても書かなくてもOK）</Text>
             <TextInput
               value={note}
               onChangeText={setNote}
@@ -252,11 +251,10 @@ export default function StudyTimer({ userId, title = '⏱️ 勉強時間をけ�
               <TouchableOpacity onPress={discard} style={[styles.modalBtn, styles.discard]}>
                 <Text style={styles.discardText}>きろくしない</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={save} disabled={noteEmpty} style={[styles.modalBtn, styles.save, noteEmpty && styles.saveOff]}>
+              <TouchableOpacity onPress={save} style={[styles.modalBtn, styles.save]}>
                 <Text style={styles.saveText}>きろくする</Text>
               </TouchableOpacity>
             </View>
-            {noteEmpty && <Text style={styles.noteHint}>何をがんばったか、ひとこと書くと記録できます。</Text>}
           </View>
         </View>
       </Modal>
@@ -325,6 +323,5 @@ const styles = StyleSheet.create({
   discardText: { color: '#64748b', fontWeight: '700' },
   save: { backgroundColor: '#4fcf8e' },
   saveText: { color: 'white', fontWeight: '700' },
-  saveOff: { opacity: 0.4 },
   noteHint: { fontSize: 12, color: '#ef4444', textAlign: 'center' },
 })

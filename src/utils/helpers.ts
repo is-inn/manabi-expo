@@ -1,5 +1,19 @@
-import { Subject } from '../types'
-import { FALLBACK_SUBJECT_COLOR } from './defaults'
+import { StudySession, Subject, User } from '../types'
+import { FALLBACK_SUBJECT_COLOR, SOLO_USER_ID } from './defaults'
+
+/**
+ * ひとりモードの記録と合算する「家族モードの自分（保護者）」のID。
+ * ログイン中の保護者がいればその人。いなければ、保護者が1人だけのときのその人。決められなければ null
+ */
+export const pickMyParentId = (users: User[], currentUser: User | null): string | null => {
+  if (currentUser?.role === 'parent') return currentUser.id
+  const parents = users.filter(u => u.role === 'parent')
+  return parents.length === 1 ? parents[0].id : null
+}
+
+/** ひとりモードの記録と、家族モードの自分（保護者）の記録をまとめる */
+export const mergeOwnSessions = (sessions: StudySession[], parentId: string | null): StudySession[] =>
+  sessions.filter(s => s.userId === SOLO_USER_ID || (parentId !== null && s.userId === parentId))
 
 export const getSubjectColor = (subjects: Subject[], name: string): string =>
   subjects.find(s => s.name === name)?.color ?? FALLBACK_SUBJECT_COLOR

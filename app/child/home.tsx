@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import ParentGateModal from '../../src/components/ParentGateModal'
 import { useRouter } from 'expo-router'
 import { useApp } from '../../src/hooks/AppContext'
 import { formatDuration, getTotalStudyTime, getStreak, getBestStreak } from '../../src/utils/helpers'
@@ -14,6 +15,7 @@ export default function ChildHome() {
   const { state, dispatch } = useApp()
   const router = useRouter()
   const user = state.currentUser
+  const [gateOpen, setGateOpen] = useState(false)
 
   // レンダー中に遷移しない（React の副作用ルール順守）
   useEffect(() => {
@@ -78,7 +80,19 @@ export default function ChildHome() {
         >
           <Text style={styles.helpText}>📖 つかいかたを見る</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => setGateOpen(true)} style={styles.modeBtn}>
+          <Text style={styles.modeText}>🔁 つかいかたを かえる（ひとりで／家族で）</Text>
+          <Text style={styles.modeSub}>おとなのかくにんが必要です</Text>
+        </TouchableOpacity>
       </ScrollView>
+
+      <ParentGateModal
+        visible={gateOpen}
+        purpose="つかいかたの切りかえ"
+        onPass={() => { setGateOpen(false); router.replace('/welcome') }}
+        onCancel={() => setGateOpen(false)}
+      />
     </SafeAreaView>
   )
 }
@@ -94,6 +108,9 @@ const styles = StyleSheet.create({
   logoutText: { color: 'white', fontSize: 12 },
   helpBtn: { alignSelf: 'center', backgroundColor: '#e8fef3', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12 },
   helpText: { color: '#1e8e5a', fontWeight: '700', fontSize: 14 },
+  modeBtn: { alignSelf: 'center', backgroundColor: '#eef2ff', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, alignItems: 'center', gap: 2 },
+  modeText: { color: '#4f46e5', fontWeight: '700', fontSize: 14 },
+  modeSub: { color: '#94a3b8', fontSize: 11 },
   statsRow: { flexDirection: 'row', gap: 12 },
   statCard: { flex: 1, backgroundColor: 'white', borderRadius: 16, padding: 16, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
   statValue: { fontSize: 22, fontWeight: '700', color: '#4f9cf9' },
