@@ -1,14 +1,34 @@
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useApp } from '../../src/hooks/AppContext'
-import { formatDuration, getTodayStr, getTotalStudyTime, getStreak, getSubjectColor } from '../../src/utils/helpers'
+import { formatClock, formatDuration, getTodayStr, getTotalStudyTime, getStreak, getSubjectColor } from '../../src/utils/helpers'
+import { TIMER_PRESETS } from '../../src/utils/defaults'
 import { StudySession } from '../../src/types'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+
+const MIN_SAVE_SECONDS = 5
 
 export default function ChildTimer() {
   const { state, dispatch } = useApp()
   const { timerState, currentUser } = state
   const [selected, setSelected] = useState('')
+  // ストップウォッチ（のんびり計る）か、タイマー（時間をきめてカウントダウン）か
+  const [kind, setKind] = useState<'stopwatch' | 'countdown'>('stopwatch')
+  const [minutes, setMinutes] = useState(15)
+  const [doneMessage, setDoneMessage] = useState('')
+
+  const target = timerState.isRunning ? timerState.targetSeconds : 0
+
+  // カウントダウンが0になったら、自動で止めて記録する（終了のお知らせは TimerAlertManager が出す）
+  useEffect(() => {
+    if (!currentUser || !timerState.isRunning || target <= 0 || timerState.elapsed < target) return
+    if (timerState.sessionUserId !== currentUser.id) return
+    dispatch({
+      type: 'SAVE_SESSION',
+      payload: { id: `s-${Date.now()}`, userId: currentUser.id, subject: timerState.subject, duration: target, date: getTodayStr() },
+    })
+    setDoneMessage(`🎉 ${timerState.subject} ${Math.round(target / 60)}分、がんばったね！`)
+  }, [timerState.isRunning, timerState.elapsed, target])
 
   if (!currentUser) return null
 
@@ -20,16 +40,20 @@ export default function ChildTimer() {
   const streak = getStreak(mySessions)
 
   const handleStart = () => {
-    dispatch({ type: 'START_TIMER', payload: { subject: selectedSubject, userId: currentUser.id, now: Date.now() } })
+    setDoneMessage('')
+    dispatch({
+      type: 'START_TIMER',
+      payload: { subject: selectedSubject, userId: currentUser.id, now: Date.now(), targetSeconds: kind === 'countdown' ? minutes * 60 : 0 },
+    })
   }
 
   const handleStop = () => {
-    if (timerState.elapsed < 5) { dispatch({ type: 'STOP_TIMER' }); return }
+    if (timerState.elapsed < MIN_SAVE_SECONDS) { dispatch({ type: 'STOP_TIMER' }); return }
     const session: StudySession = {
       id: `s-${Date.now()}`,
       userId: currentUser.id,
       subject: timerState.subject,
-      duration: timerState.elapsed,
+      duration: target > 0 ? Math.min(timerState.elapsed, target) : timerState.elapsed,
       date: getTodayStr(),
     }
     dispatch({ type: 'SAVE_SESSION', payload: session })
@@ -37,15 +61,44 @@ export default function ChildTimer() {
 
   const paused = timerState.isRunning && timerState.pausedAt > 0
   const color = getSubjectColor(state.subjects, timerState.isRunning ? timerState.subject : selectedSubject)
+  const isCountdown = timerState.isRunning ? target > 0 : kind === 'countdown'
+  const clockText = isCountdown
+    ? formatClock(Math.max((timerState.isRunning ? target - timerState.elapsed : minutes * 60), 0))
+    : formatDuration(timerState.elapsed)
 
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.pageTitle}>⏱️ 学習タイマー</Text>
 
+        {!!doneMessage && !timerState.isRunning && (
+          <View style={styles.doneCard}>
+            <Text style={styles.doneText}>{doneMessage}</Text>
+          </View>
+        )}
+
         {/* Subject selector */}
         {!timerState.isRunning && (
           <View style={styles.card}>
+            <View style={styles.kindRow}>
+              {([['stopwatch', 'ストップウォッチ'], ['countdown', 'タイマー']] as ['stopwatch' | 'countdown', string][]).map(([k, label]) => (
+                <TouchableOpacity key={k} onPress={() => setKind(k)} style={[styles.kindBtn, kind === k && styles.kindOn]}>
+                  <Text style={[styles.kindText, kind === k && styles.kindTextOn]}>{label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            {kind === 'countdown' && (
+              <>
+                <Text style={styles.sectionLabel}>なん分やる？</Text>
+                <View style={styles.subjectRow}>
+                  {TIMER_PRESETS.map(p => (
+                    <TouchableOpacity key={p} onPress={() => setMinutes(p)} style={[styles.subjectBtn, { backgroundColor: minutes === p ? '#4fcf8e' : '#f1f5f9' }]}>
+                      <Text style={[styles.subjectText, { color: minutes === p ? 'white' : '#64748b' }]}>{p}分</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            )}
             <Text style={styles.sectionLabel}>科目を選んでね</Text>
             <View style={styles.subjectRow}>
               {state.subjects.map(s => (
@@ -67,7 +120,7 @@ export default function ChildTimer() {
             <Text style={styles.studyingLabel}>📖 {timerState.subject}{paused ? '（一時停止中）' : 'を勉強中'}</Text>
           )}
           <View style={[styles.timerCircle, { borderColor: color }]}>
-            <Text style={[styles.timerText, { color }]}>{formatDuration(timerState.elapsed)}</Text>
+            <Text style={[styles.timerText, { color }]}>{clockText}</Text>
           </View>
           {timerState.isRunning && (
             <TouchableOpacity
@@ -109,7 +162,14 @@ const styles = StyleSheet.create({
   pageTitle: { fontSize: 20, fontWeight: '700', color: '#1a202c' },
   card: { backgroundColor: 'white', borderRadius: 16, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
   timerCard: { alignItems: 'center', gap: 16 },
-  sectionLabel: { fontSize: 13, color: '#64748b', marginBottom: 12 },
+  sectionLabel: { fontSize: 13, color: '#64748b', marginBottom: 12, marginTop: 12 },
+  kindRow: { flexDirection: 'row', backgroundColor: '#f1f5f9', borderRadius: 12, padding: 4, marginBottom: 14 },
+  kindBtn: { flex: 1, paddingVertical: 8, borderRadius: 9, alignItems: 'center' },
+  kindOn: { backgroundColor: 'white' },
+  kindText: { fontSize: 13, color: '#64748b', fontWeight: '600' },
+  kindTextOn: { color: '#1a202c', fontWeight: '700' },
+  doneCard: { backgroundColor: '#e8fef3', borderRadius: 16, padding: 16, alignItems: 'center' },
+  doneText: { color: '#1e8e5a', fontSize: 15, fontWeight: '700' },
   subjectRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   subjectBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
   subjectText: { fontSize: 13, fontWeight: '600' },
