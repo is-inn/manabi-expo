@@ -23,7 +23,7 @@ interface Props {
 }
 
 /** ストップウォッチ／タイマーと、終了時の「がんばったこと」メモ。ひとりモードと保護者の「じぶんの勉強」で共通 */
-export default function StudyTimer({ userId, title = '⏱️ 勉強をけいそく', showHistory = false, header }: Props) {
+export default function StudyTimer({ userId, title = '⏱️ 勉強時間をけいそく', showHistory = false, header }: Props) {
   const { state, dispatch } = useApp()
   const { timerState } = state
   const [kind, setKind] = useState<Kind>('stopwatch')

@@ -11,7 +11,29 @@ const PREV_STORAGE_KEY = 'manabi:appState:v2'
 // v1 はデモ家族入りの旧形式。読み込まずに掃除だけする
 const LEGACY_STORAGE_KEY = 'manabi:appState:v1'
 
-const IDLE_TIMER: TimerState = { isRunning: false, elapsed: 0, subject: '', sessionUserId: '', startedAt: 0, pausedAt: 0, pausedMs: 0, targetSeconds: 0 }
+/** 計測中のタイマーの保存場所（記録の本体とは別に持つ） */
+const TIMER_KEY = 'manabi:timer:v1'
+/** これより長く放置された計測は、続きとしては戻さない（取り違え防止） */
+const MAX_RESTORE_MS = 12 * 60 * 60 * 1000
+
+/** 保存していたタイマーを検証して戻す。使えない・古すぎるときは null */
+function restoreTimer(raw: string): TimerState | null {
+  try {
+    const t = JSON.parse(raw) as Partial<TimerState>
+    const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null)
+    const startedAt = num(t.startedAt), pausedAt = num(t.pausedAt), pausedMs = num(t.pausedMs), elapsed = num(t.elapsed), target = num(t.targetSeconds)
+    if (startedAt === null || pausedAt === null || pausedMs === null || elapsed === null || target === null) return null
+    if (typeof t.subject !== 'string' || typeof t.sessionUserId !== 'string' || !t.sessionUserId) return null
+    const running = t.isRunning === true
+    if (!running && elapsed <= 0) return null
+    if (running && Date.now() - startedAt - pausedMs > MAX_RESTORE_MS) return null
+    return { isRunning: running, elapsed, subject: t.subject, sessionUserId: t.sessionUserId, startedAt, pausedAt, pausedMs, targetSeconds: Math.max(0, target) }
+  } catch {
+    return null
+  }
+}
+
+const IDLE_TIMER: TimerState ={ isRunning: false, elapsed: 0, subject: '', sessionUserId: '', startedAt: 0, pausedAt: 0, pausedMs: 0, targetSeconds: 0 }
 
 const initialState: AppState = {
   mode: null,
@@ -279,6 +301,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const saved = JSON.parse(raw) as Partial<Persisted>
           dispatch({ type: 'HYDRATE', payload: sanitize(saved) })
         }
+        // 計測の途中だったタイマーを戻す（他のアプリを開いている間にOSがアプリを終了しても、続きから計れる）
+        const rawTimer = await AsyncStorage.getItem(TIMER_KEY).catch(() => null)
+        const timer = rawTimer ? restoreTimer(rawTimer) : null
+        if (!cancelled && timer) dispatch({ type: 'HYDRATE', payload: { timerState: timer } })
+        else if (rawTimer) AsyncStorage.removeItem(TIMER_KEY).catch(() => {})
       } catch (e) {
         // 破損データは無視して初期値で起動する（クラッシュさせない）
         console.warn('[AppContext] hydrate failed, falling back to defaults', e)
@@ -299,6 +326,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       .then(() => AsyncStorage.removeItem(PREV_STORAGE_KEY).catch(() => {}))
       .catch(e => console.warn('[AppContext] persist failed', e))
   }, [hydrated, state.mode, state.accountId, state.goals, state.visibility, state.currentUser, state.users, state.solo, state.subjects, state.tasks, state.studySessions, state.reminder, state.tutorialSeen, state.timerAlert, state.cheerNotify, state.family])
+
+  // 計測中のタイマーも保存する（バックアップや家族への共有には入れない。0.5秒ごとの経過秒は保存しない）
+  const t = state.timerState
+  useEffect(() => {
+    if (!hydrated) return
+    if (!t.isRunning && t.elapsed === 0) {
+      AsyncStorage.removeItem(TIMER_KEY).catch(() => {})
+      return
+    }
+    AsyncStorage.setItem(TIMER_KEY, JSON.stringify(t)).catch(e => console.warn('[AppContext] timer persist failed', e))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, t.isRunning, t.startedAt, t.pausedAt, t.pausedMs, t.targetSeconds, t.subject, t.sessionUserId, t.isRunning ? 0 : t.elapsed])
 
   // 初回起動（または v2 からの移行）で持ち主IDを作る。端末内だけで使い、送信しない
   useEffect(() => {
