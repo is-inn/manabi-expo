@@ -3,3 +3,7 @@ node_modules/
 dist/
 *.log
 store/release/
+
+# 大きい審査用動画（GitHub 100MB 制限）
+store/app-review/ios-manabiteam.mp4
+store/app-review/zombieface-ios.mp4
