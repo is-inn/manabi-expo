@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "288663246685",
+    "firebase_url": "https://manabi-team-default-rtdb.firebaseio.com",
+    "project_id": "manabi-team",
+    "storage_bucket": "manabi-team.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:288663246685:android:1c2e165b990fa16c65fab4",
+        "android_client_info": {
+          "package_name": "com.manabiteam.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxzF8xy2ijELIE1JWnD8C9dzkWIVxKNOs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
