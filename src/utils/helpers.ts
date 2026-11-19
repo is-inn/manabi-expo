@@ -48,6 +48,25 @@ export const toDateStr = (d: Date): string => {
 
 export const getTodayStr = (): string => toDateStr(new Date())
 
+/** くり返しタスクか（やる曜日が1つ以上ある） */
+export const isRepeating = (t: { repeatDays?: number[] }): boolean => !!t.repeatDays && t.repeatDays.length > 0
+
+/** そのタスクが、その日に「やるもの」か。単発は常に対象、くり返しは曜日が合う日だけ */
+export const isTaskForDay = (t: { repeatDays?: number[] }, day: string = getTodayStr()): boolean => {
+  if (!isRepeating(t)) return true
+  const [y, m, d] = day.split('-').map(Number)
+  return t.repeatDays!.includes(new Date(y, m - 1, d).getDay())
+}
+
+/** その日に完了しているか。単発は completed、くり返しは「その日」に印があるか */
+export const isTaskDone = (t: { completed: boolean; repeatDays?: number[]; doneDates?: string[] }, day: string = getTodayStr()): boolean =>
+  isRepeating(t) ? (t.doneDates ?? []).includes(day) : t.completed
+
+const DAY_NAMES = ['日', '月', '火', '水', '木', '金', '土']
+/** 「毎日」「毎週 月・水」などの表示 */
+export const repeatLabel = (days: number[]): string =>
+  days.length >= 7 ? '毎日' : `毎週 ${[...days].sort((a, b) => a - b).map(d => DAY_NAMES[d]).join('・')}`
+
 export const getTotalStudyTime = (sessions: { duration: number }[]): number =>
   sessions.reduce((acc, s) => acc + s.duration, 0)
 

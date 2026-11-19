@@ -24,6 +24,10 @@ export interface Task {
   dueDate: string
   completed: boolean
   createdAt: string
+  /** くり返しタスク：やる曜日（0=日〜6=土）。なければ単発（1回で完了） */
+  repeatDays?: number[]
+  /** くり返しタスクで「やった」日（YYYY-MM-DD）。日ごとに自動で未完了に戻る */
+  doneDates?: string[]
 }
 
 export interface StudySession {

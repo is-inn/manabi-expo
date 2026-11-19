@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'expo-router'
 import { useApp } from '../../src/hooks/AppContext'
 import Avatar from '../../src/components/Avatar'
-import { formatDuration, getTotalStudyTime, getStreak } from '../../src/utils/helpers'
+import { formatDuration, getTotalStudyTime, getStreak, isTaskDone, isTaskForDay } from '../../src/utils/helpers'
 
 export default function ParentHome() {
   const { state, dispatch } = useApp()
@@ -35,8 +35,9 @@ export default function ParentHome() {
 
         {children.map(child => {
           const sessions = state.studySessions.filter(s => s.userId === child.id)
-          const tasks = state.tasks.filter(t => t.assignedTo === child.id)
-          const done = tasks.filter(t => t.completed).length
+          // 今日やるもの（くり返しは曜日が合うものだけ）の達成数
+          const tasks = state.tasks.filter(t => t.assignedTo === child.id && isTaskForDay(t))
+          const done = tasks.filter(t => isTaskDone(t)).length
           const total = getTotalStudyTime(sessions)
           const streak = getStreak(sessions)
 

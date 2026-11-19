@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { View, ActivityIndicator, StyleSheet } from 'react-native'
 import { AppState, AppAction, TimerState, ParentVisibility } from '../types'
 import { DEFAULT_SUBJECTS, DEFAULT_REMINDER, DEFAULT_TIMER_ALERT, DEFAULT_GOAL_MINUTES, MAX_GOAL_MINUTES, MAX_WEEKLY_GOAL_MINUTES, MAX_GOAL_TITLE_LENGTH } from '../utils/defaults'
-import { generateAccountId } from '../utils/helpers'
+import { generateAccountId, getTodayStr, isRepeating } from '../utils/helpers'
 
 const STORAGE_KEY = 'manabi:appState:v3'
 // v2 は v3 の元になる形式。v3 が無ければ v2 を読み込み、v3 を保存できたあとで消す
@@ -155,7 +155,20 @@ function reducer(state: AppState, action: AppAction): AppState {
     case 'DELETE_GOAL': return { ...state, goals: state.goals.filter(g => g.userId !== action.payload) }
     case 'SET_VISIBILITY': return { ...state, visibility: { ...state.visibility, [action.payload.userId]: action.payload.visibility } }
     case 'ADD_TASK': return { ...state, tasks: [...state.tasks, action.payload] }
-    case 'TOGGLE_TASK': return { ...state, tasks: state.tasks.map(t => t.id === action.payload ? { ...t, completed: !t.completed } : t) }
+    case 'TOGGLE_TASK': return {
+      ...state,
+      tasks: state.tasks.map(t => {
+        if (t.id !== action.payload) return t
+        // くり返しは「今日」の印だけを付け外しする（翌日には自動で未完了に戻る）。印は直近90日ぶんだけ残す
+        if (isRepeating(t)) {
+          const today = getTodayStr()
+          const done = t.doneDates ?? []
+          const next = done.includes(today) ? done.filter(d => d !== today) : [...done, today].sort().slice(-90)
+          return { ...t, doneDates: next }
+        }
+        return { ...t, completed: !t.completed }
+      }),
+    }
     case 'DELETE_TASK': return { ...state, tasks: state.tasks.filter(t => t.id !== action.payload) }
     case 'START_TIMER': return {
       ...state,

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import ParentGateModal from '../../src/components/ParentGateModal'
 import { useRouter } from 'expo-router'
 import { useApp } from '../../src/hooks/AppContext'
-import { formatDuration, getTotalStudyTime, getStreak, getBestStreak } from '../../src/utils/helpers'
+import { formatDuration, getTotalStudyTime, getStreak, getBestStreak, isTaskDone, isTaskForDay } from '../../src/utils/helpers'
 import StreakBadges from '../../src/components/StreakBadges'
 import WeeklyReview from '../../src/components/WeeklyReview'
 import StudyCharts from '../../src/components/StudyCharts'
@@ -26,7 +26,7 @@ export default function ChildHome() {
 
   const mySessions = state.studySessions.filter(s => s.userId === user.id)
   const myTasks = state.tasks.filter(t => t.assignedTo === user.id)
-  const pending = myTasks.filter(t => !t.completed)
+  const pending = myTasks.filter(t => isTaskForDay(t) && !isTaskDone(t))
   const totalTime = getTotalStudyTime(mySessions)
   const streak = getStreak(mySessions)
 

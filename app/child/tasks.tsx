@@ -1,15 +1,16 @@
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useApp } from '../../src/hooks/AppContext'
-import { getSubjectColor } from '../../src/utils/helpers'
+import { getSubjectColor, isRepeating, isTaskDone, isTaskForDay, repeatLabel } from '../../src/utils/helpers'
 
 export default function ChildTasks() {
   const { state, dispatch } = useApp()
   const user = state.currentUser
   if (!user) return null
 
-  const tasks = state.tasks.filter(t => t.assignedTo === user.id)
-  const done = tasks.filter(t => t.completed).length
+  // くり返しタスクは、やる曜日の日だけ出す
+  const tasks = state.tasks.filter(t => t.assignedTo === user.id && isTaskForDay(t))
+  const done = tasks.filter(t => isTaskDone(t)).length
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -29,26 +30,29 @@ export default function ChildTasks() {
           <Text style={styles.empty}>タスクがありません 🎉</Text>
         )}
 
-        {tasks.map(task => (
-          <TouchableOpacity
-            key={task.id}
-            style={[styles.taskCard, task.completed && styles.taskCardDone]}
-            onPress={() => dispatch({ type: 'TOGGLE_TASK', payload: task.id })}
-          >
-            <View style={[styles.checkbox, task.completed && styles.checkboxDone]}>
-              {task.completed && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <View style={styles.taskInfo}>
-              <Text style={[styles.taskTitle, task.completed && styles.taskTitleDone]}>{task.title}</Text>
-              <View style={styles.taskMeta}>
-                <View style={[styles.subjectBadge, { backgroundColor: `${getSubjectColor(state.subjects, task.subject)}22` }]}>
-                  <Text style={[styles.subjectText, { color: getSubjectColor(state.subjects, task.subject) }]}>{task.subject}</Text>
-                </View>
-                <Text style={styles.dueDate}>📅 {task.dueDate}</Text>
+        {tasks.map(task => {
+          const isDone = isTaskDone(task)
+          return (
+            <TouchableOpacity
+              key={task.id}
+              style={[styles.taskCard, isDone && styles.taskCardDone]}
+              onPress={() => dispatch({ type: 'TOGGLE_TASK', payload: task.id })}
+            >
+              <View style={[styles.checkbox, isDone && styles.checkboxDone]}>
+                {isDone && <Text style={styles.checkmark}>✓</Text>}
               </View>
-            </View>
-          </TouchableOpacity>
-        ))}
+              <View style={styles.taskInfo}>
+                <Text style={[styles.taskTitle, isDone && styles.taskTitleDone]}>{task.title}</Text>
+                <View style={styles.taskMeta}>
+                  <View style={[styles.subjectBadge, { backgroundColor: `${getSubjectColor(state.subjects, task.subject)}22` }]}>
+                    <Text style={[styles.subjectText, { color: getSubjectColor(state.subjects, task.subject) }]}>{task.subject}</Text>
+                  </View>
+                  <Text style={styles.dueDate}>{isRepeating(task) ? `🔁 ${repeatLabel(task.repeatDays!)}` : `📅 ${task.dueDate}`}</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          )
+        })}
       </ScrollView>
     </SafeAreaView>
   )

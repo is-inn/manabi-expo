@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView } from 
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useState } from 'react'
 import { useApp } from '../../src/hooks/AppContext'
-import { getTodayStr, getSubjectColor } from '../../src/utils/helpers'
+import { getTodayStr, getSubjectColor, isRepeating, isTaskDone, isTaskForDay, repeatLabel } from '../../src/utils/helpers'
 import { avatarAsText } from '../../src/utils/avatar'
 import { Task } from '../../src/types'
 
@@ -12,6 +12,9 @@ export default function ParentTasks() {
   const [title, setTitle] = useState('')
   const [subject, setSubject] = useState('')
   const [assignedTo, setAssignedTo] = useState('')
+  const [repeat, setRepeat] = useState(false)
+  // やる曜日（0=日〜6=土）。「くり返す」を選んだときだけ使う。はじめは毎日
+  const [days, setDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6])
 
   const children = state.users.filter(u => u.role === 'child')
   // 科目が消された／未選択のときは先頭の科目、こどもが1人だけなら自動でその子
@@ -20,7 +23,9 @@ export default function ParentTasks() {
 
   const handleAdd = () => {
     if (!title.trim() || !assigneeId || !subjectName) return
+    if (repeat && days.length === 0) return
     const task: Task = {
+      ...(repeat ? { repeatDays: [...days].sort((a, b) => a - b), doneDates: [] } : {}),
       id: `t-${Date.now()}`,
       title: title.trim(),
       subject: subjectName,
@@ -31,6 +36,8 @@ export default function ParentTasks() {
     }
     dispatch({ type: 'ADD_TASK', payload: task })
     setTitle('')
+    setRepeat(false)
+    setDays([0, 1, 2, 3, 4, 5, 6])
     setAdding(false)
   }
 
@@ -73,7 +80,33 @@ export default function ParentTasks() {
                 </TouchableOpacity>
               ))}
             </View>
-            <TouchableOpacity onPress={handleAdd} style={styles.submitBtn}>
+            <Text style={styles.formLabel}>くり返し</Text>
+            <View style={styles.subjectRow}>
+              {[{ v: false, l: '1回だけ' }, { v: true, l: '🔁 くり返す' }].map(o => (
+                <TouchableOpacity key={o.l} onPress={() => setRepeat(o.v)}
+                  style={[styles.subjectBtn, { backgroundColor: repeat === o.v ? '#4f9cf9' : '#f1f5f9' }]}>
+                  <Text style={[styles.subjectText, { color: repeat === o.v ? 'white' : '#64748b' }]}>{o.l}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            {repeat && (
+              <>
+                <Text style={styles.formLabel}>やる曜日（毎日にするなら全部えらぶ）</Text>
+                <View style={styles.subjectRow}>
+                  {['日', '月', '火', '水', '木', '金', '土'].map((n, i) => {
+                    const on = days.includes(i)
+                    return (
+                      <TouchableOpacity key={n} onPress={() => setDays(on ? days.filter(d => d !== i) : [...days, i])}
+                        style={[styles.dayBtn, { backgroundColor: on ? '#4fcf8e' : '#f1f5f9' }]}>
+                        <Text style={[styles.subjectText, { color: on ? 'white' : '#64748b' }]}>{n}</Text>
+                      </TouchableOpacity>
+                    )
+                  })}
+                </View>
+                <Text style={styles.metaText}>{days.length === 0 ? '曜日を1つ以上えらんでください' : `${repeatLabel(days)}にやるタスク。毎日（その日）チェックが自動で戻ります`}</Text>
+              </>
+            )}
+            <TouchableOpacity onPress={handleAdd} style={[styles.submitBtn, repeat && days.length === 0 && { opacity: 0.45 }]}>
               <Text style={styles.submitText}>タスクを追加</Text>
             </TouchableOpacity>
           </View>
@@ -81,21 +114,24 @@ export default function ParentTasks() {
 
         {state.tasks.map(task => {
           const assignee = state.users.find(u => u.id === task.assignedTo)
+          const isDone = isTaskDone(task)
+          const offToday = !isTaskForDay(task)   // くり返しで、今日はやらない曜日
           return (
-            <View key={task.id} style={[styles.taskCard, task.completed && styles.taskDone]}>
+            <View key={task.id} style={[styles.taskCard, (isDone || offToday) && styles.taskDone]}>
               <TouchableOpacity
-                style={[styles.checkbox, task.completed && styles.checkboxDone]}
+                style={[styles.checkbox, isDone && styles.checkboxDone]}
                 onPress={() => dispatch({ type: 'TOGGLE_TASK', payload: task.id })}
               >
-                {task.completed && <Text style={styles.checkmark}>✓</Text>}
+                {isDone && <Text style={styles.checkmark}>✓</Text>}
               </TouchableOpacity>
               <View style={styles.taskInfo}>
-                <Text style={[styles.taskTitle, task.completed && styles.taskTitleDone]}>{task.title}</Text>
+                <Text style={[styles.taskTitle, isDone && styles.taskTitleDone]}>{task.title}</Text>
                 <View style={styles.taskMeta}>
                   <View style={[styles.badge, { backgroundColor: `${getSubjectColor(state.subjects, task.subject)}22` }]}>
                     <Text style={[styles.badgeText, { color: getSubjectColor(state.subjects, task.subject) }]}>{task.subject}</Text>
                   </View>
                   {assignee && <Text style={styles.metaText}>{avatarAsText(assignee.avatar)} {assignee.name}</Text>}
+                  {isRepeating(task) && <Text style={styles.metaText}>🔁 {repeatLabel(task.repeatDays!)}{offToday ? '（今日はおやすみ）' : ''}</Text>}
                 </View>
               </View>
               <TouchableOpacity onPress={() => dispatch({ type: 'DELETE_TASK', payload: task.id })}>
@@ -122,6 +158,7 @@ const styles = StyleSheet.create({
   subjectRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   subjectBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   subjectText: { fontSize: 12, fontWeight: '600' },
+  dayBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   submitBtn: { backgroundColor: '#4f9cf9', padding: 12, borderRadius: 10, alignItems: 'center' },
   submitText: { color: 'white', fontWeight: '700' },
   taskCard: { backgroundColor: 'white', borderRadius: 12, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },

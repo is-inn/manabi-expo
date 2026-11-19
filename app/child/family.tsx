@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useApp } from '../../src/hooks/AppContext'
 import { ALL_PRIVATE } from '../../src/utils/defaults'
 import Avatar from '../../src/components/Avatar'
-import { formatDuration, getDaysUntil, getSubjectColor, getSubjectTotals, getTotalStudyTime, getWeekSessions } from '../../src/utils/helpers'
+import { formatDuration, getDaysUntil, isRepeating, isTaskDone, repeatLabel, getSubjectColor, getSubjectTotals, getTotalStudyTime, getWeekSessions } from '../../src/utils/helpers'
 
 /** 「おうちの人」: 保護者が公開にした項目だけを表示する。非公開の項目は描画しない */
 export default function ChildFamily() {
@@ -65,7 +65,7 @@ export default function ChildFamily() {
                   <Text style={styles.rowLabel}>タスク</Text>
                   {tasks.length === 0 && <Text style={styles.sub}>タスクはありません</Text>}
                   {tasks.map(t => (
-                    <Text key={t.id} style={styles.sub}>{t.completed ? '✅' : '⬜'} {t.title}（{t.subject}）</Text>
+                    <Text key={t.id} style={styles.sub}>{isTaskDone(t) ? '✅' : '⬜'} {t.title}（{t.subject}）{isRepeating(t) ? ` 🔁 ${repeatLabel(t.repeatDays!)}` : ''}</Text>
                   ))}
                 </View>
               )}
