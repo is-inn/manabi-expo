@@ -17,7 +17,7 @@ const setStatus = (s: FamilyStatus) => { if (status !== s) { status = s; listene
 export const useFamilyStatus = () => useSyncExternalStore(cb => { listeners.add(cb); return () => listeners.delete(cb) }, () => status)
 
 const sharedOf = (s: SharedData): SharedData => ({
-  users: s.users, subjects: s.subjects, tasks: s.tasks, studySessions: s.studySessions, goals: s.goals, visibility: s.visibility,
+  users: s.users, subjects: s.subjects, tasks: s.tasks, studySessions: s.studySessions, goals: s.goals, visibility: s.visibility, trophies: s.trophies,
 })
 
 /** a と b でちがう場所（どちらか一方にしかないものも含む） */
@@ -126,7 +126,7 @@ export default function FamilySync() {
       })
     }, PUSH_DELAY_MS)
     return () => clearTimeout(timer)
-  }, [familyId, loaded, uid, state.users, state.subjects, state.tasks, state.studySessions, state.goals, state.visibility])
+  }, [familyId, loaded, uid, state.users, state.subjects, state.tasks, state.studySessions, state.goals, state.visibility, state.trophies])
 
   return null
 }

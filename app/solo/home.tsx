@@ -72,7 +72,11 @@ export default function SoloHome() {
           </View>
         </View>
 
-        <StreakBadges streak={streak} best={getBestStreak(sessions, goalSec)} />
+        <StreakBadges
+          streak={streak}
+          best={getBestStreak(sessions, goalSec)}
+          trophies={state.trophies.filter(t => t.userId === 'solo')}
+        />
         <WeeklyReview sessions={sessions} />
 
         <View style={styles.card}>

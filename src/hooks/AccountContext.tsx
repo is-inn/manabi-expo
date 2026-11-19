@@ -88,7 +88,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (!user || !syncing) return
     const timer = setTimeout(() => { upload(user).catch(e => console.warn('[account] backup failed', e)) }, BACKUP_DELAY_MS)
     return () => clearTimeout(timer)
-  }, [user, syncing, state.mode, state.accountId, state.goals, state.visibility, state.users, state.solo, state.subjects, state.tasks, state.studySessions, upload])
+  }, [user, syncing, state.mode, state.accountId, state.goals, state.visibility, state.users, state.solo, state.subjects, state.tasks, state.studySessions, state.trophies, upload])
 
   const signUp = useCallback(async (email: string, password: string) => {
     const cred = await createUserWithEmailAndPassword(auth, email.trim(), password)

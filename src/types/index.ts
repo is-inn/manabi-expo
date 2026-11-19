@@ -108,8 +108,23 @@ export interface FamilyLink {
   initial?: 'push' | 'pull'
 }
 
+/** もらったトロフィー。自動（週の目標・継続）と、保護者から送られたもの */
+export interface Trophy {
+  /** 自動のものは「種類＋人＋期間」で決まる文字列（同じものを二重にもらわない） */
+  id: string
+  /** もらった人 */
+  userId: string
+  kind: 'week' | 'streak' | 'parent'
+  icon: string
+  title: string
+  /** もらった日（YYYY-MM-DD）。自動のものは空でもよい */
+  date: string
+  /** 送った保護者のID（kind = parent のとき） */
+  from?: string
+}
+
 /** 家族で共有する部分 */
-export type SharedData = Pick<AppState, 'users' | 'subjects' | 'tasks' | 'studySessions' | 'goals' | 'visibility'>
+export type SharedData = Pick<AppState, 'users' | 'subjects' | 'tasks' | 'studySessions' | 'goals' | 'visibility' | 'trophies'>
 
 export interface AppState {
   /** 最初に選んだ使い方。まだ選んでいなければ null */
@@ -124,6 +139,7 @@ export interface AppState {
   subjects: Subject[]
   tasks: Task[]
   studySessions: StudySession[]
+  trophies: Trophy[]
   reminder: ReminderSetting
   /** 使い方の説明（チュートリアル）を見終えた人のID */
   tutorialSeen: string[]
@@ -162,6 +178,8 @@ export type AppAction =
   | { type: 'ADD_TASK'; payload: Task }
   | { type: 'TOGGLE_TASK'; payload: string }
   | { type: 'DELETE_TASK'; payload: string }
+  /** トロフィーを足す（同じ id はすでにあれば足さない） */
+  | { type: 'AWARD_TROPHIES'; payload: Trophy[] }
   | { type: 'START_TIMER'; payload: { subject: string; userId: string; now: number; targetSeconds?: number } }
   | { type: 'TICK_TIMER'; payload: { now: number } }
   | { type: 'PAUSE_TIMER'; payload: { now: number } }

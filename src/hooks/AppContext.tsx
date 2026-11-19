@@ -46,6 +46,7 @@ const initialState: AppState = {
   subjects: DEFAULT_SUBJECTS,
   tasks: [],
   studySessions: [],
+  trophies: [],
   reminder: DEFAULT_REMINDER,
   tutorialSeen: [],
   timerAlert: DEFAULT_TIMER_ALERT,
@@ -80,6 +81,7 @@ function reducer(state: AppState, action: AppAction): AppState {
         tasks: state.tasks.filter(t => t.assignedTo !== id),
         studySessions: state.studySessions.filter(s => s.userId !== id),
         goals: state.goals.filter(g => g.userId !== id),
+        trophies: state.trophies.filter(t => t.userId !== id),
         visibility: Object.fromEntries(Object.entries(state.visibility).filter(([k]) => k !== id)),
         currentUser: state.currentUser?.id === id ? null : state.currentUser,
         timerState: state.timerState.sessionUserId === id ? IDLE_TIMER : state.timerState,
@@ -144,6 +146,7 @@ function reducer(state: AppState, action: AppAction): AppState {
         studySessions: p.studySessions,
         goals: p.goals,
         visibility: p.visibility,
+        trophies: p.trophies,
         currentUser: me ?? null,
         timerState: timerGone ? IDLE_TIMER : state.timerState,
       }
@@ -170,6 +173,11 @@ function reducer(state: AppState, action: AppAction): AppState {
       }),
     }
     case 'DELETE_TASK': return { ...state, tasks: state.tasks.filter(t => t.id !== action.payload) }
+    case 'AWARD_TROPHIES': {
+      const have = new Set(state.trophies.map(t => t.id))
+      const added = action.payload.filter(t => !have.has(t.id) && (have.add(t.id), true))
+      return added.length === 0 ? state : { ...state, trophies: [...state.trophies, ...added] }
+    }
     case 'START_TIMER': return {
       ...state,
       timerState: {
@@ -212,7 +220,7 @@ function reducer(state: AppState, action: AppAction): AppState {
 const AppContext = createContext<{ state: AppState; dispatch: React.Dispatch<AppAction> } | null>(null)
 
 /** 永続化する部分だけを抜き出す（timerState は揮発でよい） */
-type Persisted = Pick<AppState, 'mode' | 'accountId' | 'goals' | 'visibility' | 'currentUser' | 'users' | 'solo' | 'subjects' | 'tasks' | 'studySessions' | 'reminder' | 'tutorialSeen' | 'timerAlert' | 'cheerNotify' | 'family'>
+type Persisted = Pick<AppState, 'mode' | 'accountId' | 'goals' | 'visibility' | 'currentUser' | 'users' | 'solo' | 'subjects' | 'tasks' | 'studySessions' | 'trophies' | 'reminder' | 'tutorialSeen' | 'timerAlert' | 'cheerNotify' | 'family'>
 
 /** 保存・バックアップする部分だけを取り出す */
 export const toPersisted = (state: AppState): Persisted => ({
@@ -226,6 +234,7 @@ export const toPersisted = (state: AppState): Persisted => ({
   subjects: state.subjects,
   tasks: state.tasks,
   studySessions: state.studySessions,
+  trophies: state.trophies,
   reminder: state.reminder,
   tutorialSeen: state.tutorialSeen,
   timerAlert: state.timerAlert,
@@ -241,6 +250,10 @@ export function sanitize(saved: Partial<Persisted>): Partial<Persisted> {
   if (Array.isArray(saved.subjects) && saved.subjects.length > 0) out.subjects = saved.subjects
   if (Array.isArray(saved.tasks)) out.tasks = saved.tasks
   if (Array.isArray(saved.studySessions)) out.studySessions = saved.studySessions
+  if (Array.isArray(saved.trophies)) {
+    out.trophies = saved.trophies.filter(t => t && typeof t.id === 'string' && typeof t.userId === 'string' &&
+      (t.kind === 'week' || t.kind === 'streak' || t.kind === 'parent') && typeof t.icon === 'string' && typeof t.title === 'string')
+  }
   const me = saved.currentUser
   if (me && out.users?.some(u => u.id === me.id)) out.currentUser = me
   const s = saved.solo
@@ -338,7 +351,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // v3 を書けたことを確かめてから v2 を消す
       .then(() => AsyncStorage.removeItem(PREV_STORAGE_KEY).catch(() => {}))
       .catch(e => console.warn('[AppContext] persist failed', e))
-  }, [hydrated, state.mode, state.accountId, state.goals, state.visibility, state.currentUser, state.users, state.solo, state.subjects, state.tasks, state.studySessions, state.reminder, state.tutorialSeen, state.timerAlert, state.cheerNotify, state.family])
+  }, [hydrated, state.mode, state.accountId, state.goals, state.visibility, state.currentUser, state.users, state.solo, state.subjects, state.tasks, state.studySessions, state.trophies, state.reminder, state.tutorialSeen, state.timerAlert, state.cheerNotify, state.family])
 
   // 計測中のタイマーも保存する（バックアップや家族への共有には入れない。0.5秒ごとの経過秒は保存しない）
   const t = state.timerState

@@ -87,6 +87,7 @@ export function flatten(d: SharedData): FlatData {
   for (const t of d.tasks) m.set(`tasks/${safeKey(t.id)}`, JSON.stringify(t))
   for (const s of d.studySessions) m.set(`sessions/${safeKey(s.id)}`, JSON.stringify(s))
   for (const g of d.goals) m.set(`goals/${safeKey(g.userId)}`, JSON.stringify(g))
+  for (const t of d.trophies) m.set(`trophies/${safeKey(t.id)}`, JSON.stringify(t))
   for (const [userId, v] of Object.entries(d.visibility)) m.set(`visibility/${safeKey(userId)}`, JSON.stringify({ userId, v }))
   // 科目は並び順が大事なので、まとめて1つで持つ
   m.set('subjects/list', JSON.stringify(d.subjects))
@@ -111,7 +112,7 @@ const byId = (a: { id: string }, b: { id: string }) => (a.id < b.id ? -1 : a.id 
 
 /** FlatData を共有データに戻す（形のおかしいものは捨てる） */
 export function unflatten(m: FlatData, fallbackSubjects: SharedData['subjects']): SharedData {
-  const users: unknown[] = [], tasks: unknown[] = [], sessions: unknown[] = [], goals: unknown[] = []
+  const users: unknown[] = [], tasks: unknown[] = [], sessions: unknown[] = [], goals: unknown[] = [], trophies: unknown[] = []
   const visibility: Record<string, ParentVisibility> = {}
   let subjects: unknown = null
   for (const [path, json] of m) {
@@ -122,6 +123,7 @@ export function unflatten(m: FlatData, fallbackSubjects: SharedData['subjects'])
     else if (kind === 'tasks') tasks.push(v)
     else if (kind === 'sessions') sessions.push(v)
     else if (kind === 'goals') goals.push(v)
+    else if (kind === 'trophies') trophies.push(v)
     else if (kind === 'visibility') {
       const w = v as { userId?: unknown; v?: ParentVisibility }
       if (typeof w.userId === 'string' && w.v) visibility[w.userId] = w.v
@@ -134,6 +136,7 @@ export function unflatten(m: FlatData, fallbackSubjects: SharedData['subjects'])
     studySessions: (sessions.filter(isObj) as SharedData['studySessions']).filter(s => Number.isFinite(s.duration)).sort(byId),
     subjects: Array.isArray(subjects) ? (subjects as SharedData['subjects']).filter(s => s && typeof s.name === 'string') : undefined,
     goals: goals as SharedData['goals'],
+    trophies: (trophies.filter(isObj) as SharedData['trophies']).sort(byId),
     visibility,
     mode: 'family',
   })
@@ -143,6 +146,7 @@ export function unflatten(m: FlatData, fallbackSubjects: SharedData['subjects'])
     tasks: clean.tasks ?? [],
     studySessions: clean.studySessions ?? [],
     goals: clean.goals ?? [],
+    trophies: clean.trophies ?? [],
     visibility: clean.visibility ?? {},
   }
 }

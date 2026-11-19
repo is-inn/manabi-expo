@@ -69,7 +69,12 @@ export default function ChildHome() {
           </TouchableOpacity>
         </View>
 
-        <StreakBadges streak={streak} best={getBestStreak(mySessions)} />
+        <StreakBadges
+          streak={streak}
+          best={getBestStreak(mySessions)}
+          trophies={state.trophies.filter(t => t.userId === user.id)}
+          nameOf={id => state.users.find(u => u.id === id)?.name}
+        />
         <WeeklyReview sessions={mySessions} />
         <StudyCharts sessions={mySessions} kids />
         <ReminderSettings />
