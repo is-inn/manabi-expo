@@ -38,6 +38,8 @@ export interface StudySession {
   date: string
   /** 頑張ったことメモ（ひとりモード） */
   note?: string
+  /** 記録に付けた写真（縮小した data URI。1枚だけ） */
+  photo?: string
 }
 
 export interface SoloProfile {

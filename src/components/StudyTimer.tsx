@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView, Modal } from 'react-native'
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView, Modal, Image } from 'react-native'
+import { pickStudyPhoto, PhotoSource } from '../utils/studyPhoto'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useEffect, useState, type ReactNode } from 'react'
 import { useApp } from '../hooks/AppContext'
@@ -33,6 +34,9 @@ export default function StudyTimer({ userId, title = '⏱️ 勉強時間をけ�
   const [selected, setSelected] = useState('')
   const [finishOpen, setFinishOpen] = useState(false)
   const [note, setNote] = useState('')
+  const [photo, setPhoto] = useState<string | null>(null)
+  const [photoBusy, setPhotoBusy] = useState(false)
+  const [photoBig, setPhotoBig] = useState<string | null>(null)
   const [pendingDelete, setPendingDelete] = useState<StudySession | null>(null)
 
   // 科目が消された／未選択のときは先頭の科目
@@ -62,6 +66,7 @@ export default function StudyTimer({ userId, title = '⏱️ 勉強時間をけ�
   const start = () => {
     if (!subjectName || otherBusy) return
     setNote('')
+    setPhoto(null)
     dispatch({
       type: 'START_TIMER',
       payload: { subject: subjectName, userId, now: Date.now(), targetSeconds: kind === 'countdown' ? minutes * 60 : 0 },
@@ -89,16 +94,29 @@ export default function StudyTimer({ userId, title = '⏱️ 勉強時間をけ�
         duration,
         date: getTodayStr(),
         note: note.trim() || undefined,
+        photo: photo ?? undefined,
       },
     })
     setFinishOpen(false)
     setNote('')
+    setPhoto(null)
   }
 
   const discard = () => {
     dispatch({ type: 'RESET_TIMER' })
     setFinishOpen(false)
     setNote('')
+    setPhoto(null)
+  }
+
+  const addPhoto = async (source: PhotoSource) => {
+    if (photoBusy) return
+    setPhotoBusy(true)
+    try {
+      const p = await pickStudyPhoto(source)
+      if (p) setPhoto(p)
+    } catch { /* 写真が選べなくても記録はできる */ }
+    setPhotoBusy(false)
   }
 
   const sessions = state.studySessions.filter(s => s.userId === userId || alsoUserIds.includes(s.userId))
@@ -220,6 +238,11 @@ export default function StudyTimer({ userId, title = '⏱️ 勉強時間をけ�
                       <View style={styles.rowInfo}>
                         <Text style={styles.rowTime}>{formatDuration(s.duration)}</Text>
                         {s.note ? <Text style={styles.rowNote}>{s.note}</Text> : null}
+                        {s.photo ? (
+                          <TouchableOpacity onPress={() => setPhotoBig(s.photo!)}>
+                            <Image source={{ uri: s.photo }} style={styles.thumb} />
+                          </TouchableOpacity>
+                        ) : null}
                       </View>
                       <TouchableOpacity onPress={() => setPendingDelete(s)}>
                         <Text style={styles.deleteBtn}>×</Text>
@@ -247,6 +270,24 @@ export default function StudyTimer({ userId, title = '⏱️ 勉強時間をけ�
               multiline
               style={[styles.input, styles.noteInput]}
             />
+            <Text style={styles.sectionLabel}>写真（1まいまで・つけなくてもOK）</Text>
+            {photo ? (
+              <View style={styles.photoRow}>
+                <Image source={{ uri: photo }} style={styles.photoPreview} />
+                <TouchableOpacity onPress={() => setPhoto(null)} style={styles.photoRemove}>
+                  <Text style={styles.photoRemoveText}>✕ はずす</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.photoRow}>
+                <TouchableOpacity onPress={() => addPhoto('camera')} disabled={photoBusy} style={[styles.photoBtn, photoBusy && styles.disabledBtn]}>
+                  <Text style={styles.photoBtnText}>📷 とる</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => addPhoto('library')} disabled={photoBusy} style={[styles.photoBtn, photoBusy && styles.disabledBtn]}>
+                  <Text style={styles.photoBtnText}>🖼️ アルバムからえらぶ</Text>
+                </TouchableOpacity>
+              </View>
+            )}
             <View style={styles.btnRow}>
               <TouchableOpacity onPress={discard} style={[styles.modalBtn, styles.discard]}>
                 <Text style={styles.discardText}>きろくしない</Text>
@@ -257,6 +298,12 @@ export default function StudyTimer({ userId, title = '⏱️ 勉強時間をけ�
             </View>
           </View>
         </View>
+      </Modal>
+
+      <Modal visible={photoBig !== null} transparent animationType="fade" onRequestClose={() => setPhotoBig(null)}>
+        <TouchableOpacity activeOpacity={1} style={styles.backdrop} onPress={() => setPhotoBig(null)}>
+          {photoBig ? <Image source={{ uri: photoBig }} style={styles.photoBig} resizeMode="contain" /> : null}
+        </TouchableOpacity>
       </Modal>
 
       <ConfirmModal
@@ -311,7 +358,7 @@ const styles = StyleSheet.create({
   rowTime: { fontSize: 14, fontWeight: '700', color: '#1a202c' },
   rowNote: { fontSize: 13, color: '#475569', lineHeight: 18 },
   deleteBtn: { fontSize: 22, color: '#cbd5e1', paddingHorizontal: 4 },
-  backdrop: { flex: 1, backgroundColor: 'rgba(15,23,42,0.55)', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  backdrop: { flex: 1, backgroundColor: 'rgba(15,23,42,0.7)', alignItems: 'center', justifyContent: 'center', padding: 24 },
   modalCard: { backgroundColor: 'white', borderRadius: 20, padding: 24, width: '100%', maxWidth: 380, gap: 10 },
   modalTitle: { fontSize: 20, fontWeight: '700', color: '#1a202c', textAlign: 'center' },
   modalSummary: { fontSize: 16, fontWeight: '700', color: '#4f9cf9', textAlign: 'center' },
@@ -324,4 +371,13 @@ const styles = StyleSheet.create({
   save: { backgroundColor: '#4fcf8e' },
   saveText: { color: 'white', fontWeight: '700' },
   noteHint: { fontSize: 12, color: '#ef4444', textAlign: 'center' },
+  thumb: { width: 96, height: 96, borderRadius: 10, marginTop: 6, backgroundColor: '#f1f5f9' },
+  photoRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  photoBtn: { backgroundColor: '#eef6ff', paddingHorizontal: 12, paddingVertical: 10, borderRadius: 10 },
+  photoBtnText: { color: '#2b6cb0', fontWeight: '700', fontSize: 13 },
+  disabledBtn: { opacity: 0.45 },
+  photoPreview: { width: 96, height: 96, borderRadius: 10, backgroundColor: '#f1f5f9' },
+  photoRemove: { backgroundColor: '#f1f5f9', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10 },
+  photoRemoveText: { color: '#64748b', fontWeight: '700', fontSize: 12 },
+  photoBig: { width: '100%', height: '80%' },
 })
