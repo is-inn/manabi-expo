@@ -3,7 +3,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useApp } from '../../src/hooks/AppContext'
 import { formatClock, formatDuration, getTodayStr, getTotalStudyTime, getStreak, getSubjectColor } from '../../src/utils/helpers'
 import { TIMER_PRESETS } from '../../src/utils/defaults'
-import { StudySession } from '../../src/types'
+import FinishRecordModal from '../../src/components/FinishRecordModal'
+import RecentNotes from '../../src/components/RecentNotes'
 import { useEffect, useState } from 'react'
 
 const MIN_SAVE_SECONDS = 5
@@ -19,18 +20,18 @@ export default function ChildTimer() {
 
   const target = timerState.isRunning ? timerState.targetSeconds : 0
 
-  // カウントダウンが0になったら、自動で止めて記録する（終了のお知らせは TimerAlertManager が出す）
+  // カウントダウンが0になったら、自動で止めて「きろくする」画面を出す（終了のお知らせは TimerAlertManager が出す）
   useEffect(() => {
     if (!currentUser || !timerState.isRunning || target <= 0 || timerState.elapsed < target) return
     if (timerState.sessionUserId !== currentUser.id) return
-    dispatch({
-      type: 'SAVE_SESSION',
-      payload: { id: `s-${Date.now()}`, userId: currentUser.id, subject: timerState.subject, duration: target, date: getTodayStr() },
-    })
-    setDoneMessage(`🎉 ${timerState.subject} ${Math.round(target / 60)}分、がんばったね！`)
+    dispatch({ type: 'STOP_TIMER' })
   }, [timerState.isRunning, timerState.elapsed, target])
 
   if (!currentUser) return null
+
+  // 止めたあと、まだ保存も破棄もしていない（アプリを閉じて開き直したときも、ここから続けられる）
+  const pending = !timerState.isRunning && timerState.sessionUserId === currentUser.id && timerState.elapsed >= MIN_SAVE_SECONDS
+  const pendingDuration = timerState.targetSeconds > 0 ? Math.min(timerState.elapsed, timerState.targetSeconds) : timerState.elapsed
 
   // 科目が消された／未選択のときは先頭の科目
   const selectedSubject = state.subjects.some(s => s.name === selected) ? selected : (state.subjects[0]?.name ?? '')
@@ -48,15 +49,21 @@ export default function ChildTimer() {
   }
 
   const handleStop = () => {
-    if (timerState.elapsed < MIN_SAVE_SECONDS) { dispatch({ type: 'STOP_TIMER' }); return }
-    const session: StudySession = {
-      id: `s-${Date.now()}`,
-      userId: currentUser.id,
-      subject: timerState.subject,
-      duration: target > 0 ? Math.min(timerState.elapsed, target) : timerState.elapsed,
-      date: getTodayStr(),
-    }
-    dispatch({ type: 'SAVE_SESSION', payload: session })
+    // 止めた瞬間の正確な秒数にそろえてから止める。5秒に満たないときは記録しない
+    dispatch({ type: 'TICK_TIMER', payload: { now: Date.now() } })
+    const seconds = timerState.pausedAt > 0
+      ? timerState.elapsed
+      : Math.floor((Date.now() - timerState.startedAt - timerState.pausedMs) / 1000)
+    if (seconds < MIN_SAVE_SECONDS) { dispatch({ type: 'RESET_TIMER' }); return }
+    dispatch({ type: 'STOP_TIMER' })
+  }
+
+  const saveRecord = (note?: string, photo?: string) => {
+    dispatch({
+      type: 'SAVE_SESSION',
+      payload: { id: `s-${Date.now()}`, userId: currentUser.id, subject: timerState.subject, duration: pendingDuration, date: getTodayStr(), note, photo },
+    })
+    setDoneMessage(`🎉 ${timerState.subject} ${Math.max(Math.round(pendingDuration / 60), 1)}分、がんばったね！`)
   }
 
   const paused = timerState.isRunning && timerState.pausedAt > 0
@@ -151,7 +158,17 @@ export default function ChildTimer() {
             <Text style={styles.statLabel}>連続学習</Text>
           </View>
         </View>
+
+        <RecentNotes sessions={mySessions} subjects={state.subjects} limit={3} title="📝 さいきんのがんばり" />
       </ScrollView>
+
+      <FinishRecordModal
+        visible={pending}
+        subject={timerState.subject}
+        duration={pendingDuration}
+        onSave={saveRecord}
+        onDiscard={() => dispatch({ type: 'RESET_TIMER' })}
+      />
     </SafeAreaView>
   )
 }

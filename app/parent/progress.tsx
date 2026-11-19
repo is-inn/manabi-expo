@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { TouchableOpacity } from 'react-native'
 import { useApp } from '../../src/hooks/AppContext'
 import { PARENT_TROPHY_ICONS } from '../../src/utils/trophies'
+import RecentNotes from '../../src/components/RecentNotes'
 import { makeId } from '../../src/utils/helpers'
 import Avatar from '../../src/components/Avatar'
 import WeeklyReview from '../../src/components/WeeklyReview'
@@ -99,6 +100,8 @@ export default function ParentProgress() {
                   </>
                 )
               })()}
+
+              <RecentNotes sessions={sessions} subjects={state.subjects} limit={5} />
 
               {/* Weekly chart */}
               <Text style={styles.sectionLabel}>直近7日間</Text>

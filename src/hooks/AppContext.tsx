@@ -15,6 +15,8 @@ const LEGACY_STORAGE_KEY = 'manabi:appState:v1'
 const TIMER_KEY = 'manabi:timer:v1'
 /** これより長く放置された計測は、続きとしては戻さない（取り違え防止） */
 const MAX_RESTORE_MS = 12 * 60 * 60 * 1000
+/** 記録に付けた写真を残す枚数（新しい順）。多すぎると端末も家族のサーバーも重くなる */
+const MAX_PHOTOS = 50
 
 /** 保存していたタイマーを検証して戻す。使えない・古すぎるときは null */
 function restoreTimer(raw: string): TimerState | null {
@@ -210,7 +212,18 @@ function reducer(state: AppState, action: AppAction): AppState {
     }
     case 'STOP_TIMER': return { ...state, timerState: { ...state.timerState, isRunning: false, pausedAt: 0 } }
     case 'RESET_TIMER': return { ...state, timerState: IDLE_TIMER }
-    case 'SAVE_SESSION': return { ...state, studySessions: [...state.studySessions, action.payload], timerState: IDLE_TIMER }
+    case 'SAVE_SESSION': {
+      // 写真は新しい順に50枚まで。古い記録の写真だけ外す（時間・科目・メモは残る）
+      let sessions = [...state.studySessions, action.payload]
+      let photos = sessions.filter(s => s.photo).length
+      if (photos > MAX_PHOTOS) {
+        sessions = sessions.map(s => {
+          if (s.photo && photos > MAX_PHOTOS) { photos--; const { photo: _p, ...rest } = s; return rest }
+          return s
+        })
+      }
+      return { ...state, studySessions: sessions, timerState: IDLE_TIMER }
+    }
     case 'DELETE_SESSION': return { ...state, studySessions: state.studySessions.filter(s => s.id !== action.payload) }
     case 'LOGOUT': return { ...state, currentUser: null }
     default: return state
